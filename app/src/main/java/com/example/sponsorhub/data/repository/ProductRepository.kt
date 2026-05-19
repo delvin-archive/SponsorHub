@@ -9,13 +9,10 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
 
 class ProductRepository {
-
     private val client = SupabaseManager.client
 
     suspend fun getMyProducts(): List<Product> {
-
         return try {
-
             val userId =
                 client.auth.currentUserOrNull()?.id
                     ?: return emptyList()
@@ -30,7 +27,6 @@ class ProductRepository {
                     }
                 }
                 .decodeList<Product>()
-
         } catch (e: Exception) {
 
             emptyList()
@@ -82,13 +78,9 @@ class ProductRepository {
             }
 
             val product = Product(
-
                 userId = userId,
-
                 productName = name,
-
                 description = description,
-
                 productUrl = imageUrl
             )
 
