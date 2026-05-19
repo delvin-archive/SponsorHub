@@ -25,5 +25,8 @@ data class Event(
     val posterUrl: String? = null,
 
     @SerialName("created_by")
-    val createdBy: String = ""
+    val createdBy: String = "",
+
+    @SerialName("contact_number")
+    val contactNumber: String = ""
 )

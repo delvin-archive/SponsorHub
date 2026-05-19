@@ -49,6 +49,11 @@ fun EventFormScreen(
         mutableStateOf("")
     }
 
+    var contactNumber by remember {
+
+        mutableStateOf("")
+    }
+
     Column(
 
         modifier = Modifier
@@ -164,6 +169,28 @@ fun EventFormScreen(
         )
 
         Spacer(
+            modifier = Modifier.height(12.dp)
+        )
+
+        OutlinedTextField(
+
+            value = contactNumber,
+
+            onValueChange = {
+
+                contactNumber = it
+            },
+
+            label = {
+
+                Text("Nomor Hubung Panitia")
+            },
+
+            modifier =
+                Modifier.fillMaxWidth()
+        )
+
+        Spacer(
             modifier = Modifier.height(24.dp)
         )
 
@@ -193,7 +220,9 @@ fun EventFormScreen(
 
                         date = date,
 
-                        createdBy = userId
+                        createdBy = userId,
+
+                        contactNumber = contactNumber
                     )
 
                     val result =
