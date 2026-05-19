@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sponsorhub.data.model.Event
 import com.example.sponsorhub.data.model.SponsorshipRequest
+import com.example.sponsorhub.data.model.SponsorshipRequestWithUmkm
 import com.example.sponsorhub.data.repository.AuthRepository
 import com.example.sponsorhub.data.repository.EventRepository
 import com.example.sponsorhub.data.repository.SponsorshipRepository
@@ -41,7 +42,7 @@ class EventViewModel : ViewModel() {
         _role.asStateFlow()
 
     private val _requests =
-        MutableStateFlow<List<SponsorshipRequest>>(
+        MutableStateFlow<List<SponsorshipRequestWithUmkm>>(
             emptyList()
         )
 
@@ -90,7 +91,7 @@ class EventViewModel : ViewModel() {
 
                 _requests.value =
                     sponsorshipRepository
-                        .getRequestsByEvent(
+                        .getRequestsWithUmkmByEvent(
                             eventId
                         )
 

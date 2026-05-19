@@ -31,14 +31,10 @@ fun EventDetailScreen(
     viewModel.userRequest.collectAsState()
 
     LaunchedEffect(Unit) {
-
-        viewModel.loadEventDetail(
-            eventId
-        )
+        viewModel.loadEventDetail(eventId)
     }
 
     LazyColumn(
-
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
@@ -47,44 +43,29 @@ fun EventDetailScreen(
         item {
 
             Text(
-
                 text = event?.title ?: "",
-
-                style =
-                    MaterialTheme
-                        .typography
-                        .headlineMedium
+                style = MaterialTheme.typography.headlineMedium
             )
 
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = event?.description ?: ""
             )
 
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text =
-                    "Lokasi : ${event?.location}"
+                text = "Lokasi : ${event?.location ?: "-"}"
             )
 
-            Spacer(
-                modifier = Modifier.height(6.dp)
-            )
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text =
-                    "Tanggal : ${event?.date}"
+                text = "Tanggal : ${event?.date ?: "-"}"
             )
 
-            Spacer(
-                modifier = Modifier.height(24.dp)
-            )
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
         if (role == "panitia") {
@@ -94,175 +75,124 @@ fun EventDetailScreen(
                 Row {
 
                     Button(
-
                         onClick = {
-
                             navController.navigate(
                                 "${Routes.EVENT_FORM}/${eventId}"
                             )
                         }
                     ) {
-
                         Text("Edit")
                     }
 
-                    Spacer(
-                        modifier =
-                            Modifier.width(12.dp)
-                    )
+                    Spacer(modifier = Modifier.width(12.dp))
 
                     Button(
-
                         onClick = {
-
-                            viewModel.deleteEvent(
-                                eventId
-                            ) {
-
+                            viewModel.deleteEvent(eventId) {
                                 navController.popBackStack()
                             }
                         },
-
-                        colors =
-                            ButtonDefaults
-                                .buttonColors(
-                                    containerColor =
-                                        MaterialTheme
-                                            .colorScheme
-                                            .error
-                                )
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor =
+                                MaterialTheme.colorScheme.error
+                        )
                     ) {
-
                         Text("Delete")
                     }
                 }
 
-                Spacer(
-                    modifier =
-                        Modifier.height(32.dp)
-                )
+                Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-
                     text = "Pengajuan Sponsorship",
-
-                    style =
-                        MaterialTheme
-                            .typography
-                            .titleLarge
+                    style = MaterialTheme.typography.titleLarge
                 )
 
-                Spacer(
-                    modifier =
-                        Modifier.height(16.dp)
-                )
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            items(requests) { request ->
+            items(requests) { requestWithUmkm ->
+
+                val sponsorship = requestWithUmkm.request
+                val umkm = requestWithUmkm.umkm
 
                 Card(
-
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 12.dp)
                 ) {
 
                     Column(
-
-                        modifier = Modifier
-                            .padding(16.dp)
+                        modifier = Modifier.padding(16.dp)
                     ) {
 
                         Text(
-                            text = request.title
+                            text = "UMKM : ${umkm?.name ?: "Tidak diketahui"}",
+                            style = MaterialTheme.typography.titleMedium
                         )
 
-                        Spacer(
-                            modifier =
-                                Modifier.height(8.dp)
-                        )
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = request.description
+                            text = sponsorship.title,
+                            style = MaterialTheme.typography.bodyLarge
                         )
 
-                        Spacer(
-                            modifier =
-                                Modifier.height(8.dp)
-                        )
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text =
-                                "Status : ${request.status}"
+                            text = sponsorship.description
                         )
 
-                        if (request.status == "menunggu") {
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                            Spacer(
-                                modifier =
-                                    Modifier.height(12.dp)
-                            )
+                        Text(
+                            text = "Status : ${sponsorship.status}"
+                        )
+
+                        if (sponsorship.status == "menunggu") {
+
+                            Spacer(modifier = Modifier.height(12.dp))
 
                             Row {
 
                                 Button(
-
                                     onClick = {
-
-                                        viewModel
-                                            .updateRequestStatus(
-                                                request.id,
-                                                "diterima"
-                                            )
+                                        viewModel.updateRequestStatus(
+                                            sponsorship.id,
+                                            "diterima"
+                                        )
                                     }
                                 ) {
-
                                     Text("Terima")
                                 }
 
-                                Spacer(
-                                    modifier =
-                                        Modifier.width(
-                                            12.dp
-                                        )
-                                )
+                                Spacer(modifier = Modifier.width(12.dp))
 
                                 Button(
-
                                     onClick = {
-
-                                        viewModel
-                                            .updateRequestStatus(
-                                                request.id,
-                                                "ditolak"
-                                            )
+                                        viewModel.updateRequestStatus(
+                                            sponsorship.id,
+                                            "ditolak"
+                                        )
                                     }
                                 ) {
-
                                     Text("Tolak")
                                 }
                             }
                         }
 
-                        if (request.status == "diterima") {
+                        if (sponsorship.status == "diterima") {
 
-                            Spacer(
-                                modifier =
-                                    Modifier.height(
-                                        12.dp
-                                    )
-                            )
+                            Spacer(modifier = Modifier.height(12.dp))
 
                             Button(
-
                                 onClick = {
-
                                     navController.navigate(
-                                        "${Routes.REVIEW}/${request.id}"
+                                        "${Routes.REVIEW}/${sponsorship.id}"
                                     )
                                 }
                             ) {
-
                                 Text("Beri Review")
                             }
                         }
@@ -278,57 +208,34 @@ fun EventDetailScreen(
                 if (userRequest == null) {
 
                     Button(
-
                         onClick = {
-
                             navController.navigate(
                                 "${Routes.SPONSORSHIP_FORM}/${eventId}"
                             )
                         },
-
-                        modifier =
-                            Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-
-                        Text(
-                            "Ajukan Sponsorship"
-                        )
+                        Text("Ajukan Sponsorship")
                     }
 
                 } else {
 
                     Card(
-
-                        modifier =
-                            Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
 
                         Column(
-
-                            modifier =
-                                Modifier.padding(
-                                    16.dp
-                                )
+                            modifier = Modifier.padding(16.dp)
                         ) {
 
                             Text(
-                                text =
-                                    userRequest?.title
-                                        ?: ""
+                                text = userRequest?.title ?: ""
                             )
 
-                            Spacer(
-                                modifier =
-                                    Modifier.height(
-                                        8.dp
-                                    )
-                            )
+                            Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text =
-                                    "Status : ${
-                                        userRequest?.status
-                                    }"
+                                text = "Status : ${userRequest?.status ?: "-"}"
                             )
                         }
                     }
