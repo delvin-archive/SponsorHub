@@ -402,6 +402,42 @@ fun SponsorHubNavGraph() {
                     navController
                 )
             }
+
+            /*
+            EDIT ARTICLE
+             */
+            composable(
+
+                route =
+                    "${Routes.ARTICLE_FORM}/{articleId}",
+
+                arguments = listOf(
+
+                    navArgument(
+                        "articleId"
+                    ) {
+
+                        type =
+                            NavType.StringType
+                    }
+                )
+            ) {
+
+                val articleId =
+                    it.arguments
+                        ?.getString(
+                            "articleId"
+                        )
+
+                ArticleFormScreen(
+
+                    navController =
+                        navController,
+
+                    articleId =
+                        articleId
+                )
+            }
         }
     }
 }
