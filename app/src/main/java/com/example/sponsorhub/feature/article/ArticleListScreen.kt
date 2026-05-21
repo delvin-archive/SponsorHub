@@ -6,23 +6,30 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Card
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.sponsorhub.data.repository.AuthRepository
 import com.example.sponsorhub.navigation.Routes
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.Arrangement
 
 @Composable
 fun ArticleListScreen(
     navController: NavHostController,
-    viewModel: ArticleViewModel = viewModel()
+    viewModel: ArticleViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
 
     val scope =
@@ -42,9 +49,6 @@ fun ArticleListScreen(
     val articles by
     viewModel.articles.collectAsState()
 
-    /*
-    LOAD DATA
-     */
     LaunchedEffect(Unit) {
 
         viewModel.loadArticles()
@@ -61,12 +65,8 @@ fun ArticleListScreen(
 
         modifier = Modifier
             .fillMaxSize()
-
     ) {
 
-        /*
-        LIST ARTICLE
-         */
         LazyColumn(
 
             modifier = Modifier
@@ -76,26 +76,18 @@ fun ArticleListScreen(
                 start = 16.dp,
                 end = 16.dp,
                 top = 16.dp,
-                bottom = 100.dp
+                bottom = 140.dp
             ),
 
             verticalArrangement =
                 Arrangement.spacedBy(16.dp)
-
         ) {
 
             items(articles) { article ->
 
                 Card(
-
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-
-                            navController.navigate(
-                                "${Routes.ARTICLE_DETAIL}/${article.id}"
-                            )
-                        }
 
                 ) {
 
@@ -103,12 +95,70 @@ fun ArticleListScreen(
 
                         modifier = Modifier
                             .padding(16.dp)
+                            .clickable {
 
+                                navController.navigate(
+                                    "${Routes.ARTICLE_DETAIL}/${article.id}"
+                                )
+                            }
                     ) {
+                        Row(
 
-                        /*
-                        TITLE
-                         */
+                            modifier = Modifier
+                                .fillMaxWidth(),
+
+                            horizontalArrangement =
+                                Arrangement.End
+                        ) {
+
+                            IconButton(
+
+                                onClick = {
+
+                                    navController.navigate(
+                                        "${Routes.ARTICLE_FORM}/${article.id}"
+                                    )
+                                }
+                            ) {
+
+                                Icon(
+
+                                    imageVector =
+                                        Icons.Default.Edit,
+
+                                    contentDescription =
+                                        "Edit Artikel"
+                                )
+                            }
+
+                            IconButton(
+
+                                onClick = {
+
+                                    viewModel.deleteArticle(
+                                        article.id
+                                    )
+
+                                    viewModel.loadArticles()
+                                }
+                            ) {
+
+                                Icon(
+
+                                    imageVector =
+                                        Icons.Default.Delete,
+
+                                    contentDescription =
+                                        "Hapus Artikel",
+
+                                    tint =
+                                        MaterialTheme
+                                            .colorScheme
+                                            .error
+                                )
+                            }
+                        }
+
                         Text(
 
                             text = article.title,
@@ -124,9 +174,6 @@ fun ArticleListScreen(
                                 Modifier.height(8.dp)
                         )
 
-                        /*
-                        CATEGORY
-                         */
                         AssistChip(
 
                             onClick = {},
@@ -144,9 +191,6 @@ fun ArticleListScreen(
                                 Modifier.height(12.dp)
                         )
 
-                        /*
-                        CONTENT PREVIEW
-                         */
                         Text(
 
                             text =
@@ -158,84 +202,11 @@ fun ArticleListScreen(
                                     .typography
                                     .bodyMedium
                         )
-
-                        /*
-                        BUTTON EDIT DELETE
-                         */
-                        if (role == "panitia") {
-
-                            Spacer(
-                                modifier =
-                                    Modifier.height(16.dp)
-                            )
-
-                            Row(
-
-                                modifier =
-                                    Modifier.fillMaxWidth(),
-
-                                horizontalArrangement =
-                                    Arrangement.End
-
-                            ) {
-
-                                /*
-                                EDIT
-                                 */
-                                IconButton(
-
-                                    onClick = {
-
-                                        navController.navigate(
-                                            "${Routes.ARTICLE_FORM}/${article.id}"
-                                        )
-                                    }
-
-                                ) {
-
-                                    Icon(
-
-                                        imageVector =
-                                            Icons.Default.Edit,
-
-                                        contentDescription =
-                                            "Edit"
-                                    )
-                                }
-
-                                /*
-                                DELETE
-                                 */
-                                IconButton(
-
-                                    onClick = {
-
-                                        viewModel.deleteArticle(
-                                            article.id
-                                        )
-                                    }
-
-                                ) {
-
-                                    Icon(
-
-                                        imageVector =
-                                            Icons.Default.Delete,
-
-                                        contentDescription =
-                                            "Delete"
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
             }
         }
 
-        /*
-        FAB TAMBAH
-         */
         if (role == "panitia") {
 
             FloatingActionButton(
@@ -252,7 +223,6 @@ fun ArticleListScreen(
                         Alignment.BottomEnd
                     )
                     .padding(24.dp)
-
             ) {
 
                 Icon(
@@ -261,7 +231,7 @@ fun ArticleListScreen(
                         Icons.Default.Add,
 
                     contentDescription =
-                        "Tambah Artikel"
+                        null
                 )
             }
         }

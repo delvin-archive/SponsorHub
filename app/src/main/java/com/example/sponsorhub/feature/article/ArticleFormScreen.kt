@@ -7,42 +7,70 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.sponsorhub.data.model.Article
-import java.time.LocalDateTime
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleFormScreen(
     navController: NavHostController,
     articleId: String? = null,
-    viewModel: ArticleViewModel = viewModel()
+    viewModel: ArticleViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
 
+    val context =
+        LocalContext.current
+
     var title by remember {
+
         mutableStateOf("")
     }
 
     var content by remember {
+
         mutableStateOf("")
     }
 
     var category by remember {
+
         mutableStateOf("bisnis")
     }
+    val article by
+    viewModel.article.collectAsState()
 
+    LaunchedEffect(articleId) {
+
+        if (articleId != null) {
+
+            viewModel.loadArticleDetail(
+                articleId
+            )
+        }
+    }
+
+    LaunchedEffect(article) {
+
+        article?.let {
+
+            title = it.title
+
+            content = it.content
+
+            category = it.category
+        }
+    }
     var expanded by remember {
+
         mutableStateOf(false)
     }
 
     val categories = listOf(
-        "bisnis",
-        "sponsorship",
-        "event"
-    )
 
-    val isEdit = articleId != null
+        "Bisnis",
+        "Sponsorship",
+        "Event"
+    )
 
     val isSuccess by
     viewModel.isSuccess.collectAsState()
@@ -50,38 +78,6 @@ fun ArticleFormScreen(
     val message by
     viewModel.message.collectAsState()
 
-    val article by
-    viewModel.article.collectAsState()
-
-    /*
-    LOAD DATA EDIT
-     */
-    LaunchedEffect(articleId) {
-
-        if (isEdit) {
-
-            viewModel.loadArticleDetail(
-                articleId!!
-            )
-        }
-    }
-
-    /*
-    SET DATA KE FORM
-     */
-    LaunchedEffect(article) {
-
-        article?.let {
-
-            title = it.title
-            content = it.content
-            category = it.category
-        }
-    }
-
-    /*
-    HANDLE SUCCESS
-     */
     LaunchedEffect(isSuccess) {
 
         if (isSuccess) {
@@ -100,19 +96,11 @@ fun ArticleFormScreen(
                 rememberScrollState()
             )
             .padding(24.dp)
-
     ) {
 
-        /*
-        TITLE
-         */
         Text(
 
-            text =
-                if (isEdit)
-                    "Edit Artikel"
-                else
-                    "Buat Artikel",
+            text = "Buat Artikel",
 
             style =
                 MaterialTheme
@@ -124,18 +112,17 @@ fun ArticleFormScreen(
             modifier = Modifier.height(24.dp)
         )
 
-        /*
-        JUDUL
-         */
         OutlinedTextField(
 
             value = title,
 
             onValueChange = {
+
                 title = it
             },
 
             label = {
+
                 Text("Judul Artikel")
             },
 
@@ -147,9 +134,6 @@ fun ArticleFormScreen(
             modifier = Modifier.height(16.dp)
         )
 
-        /*
-        DROPDOWN KATEGORI
-         */
         ExposedDropdownMenuBox(
 
             expanded = expanded,
@@ -158,7 +142,6 @@ fun ArticleFormScreen(
 
                 expanded = !expanded
             }
-
         ) {
 
             OutlinedTextField(
@@ -188,21 +171,20 @@ fun ArticleFormScreen(
 
                     expanded = false
                 }
-
             ) {
 
-                categories.forEach { item ->
+                categories.forEach {
 
                     DropdownMenuItem(
 
                         text = {
 
-                            Text(item)
+                            Text(it)
                         },
 
                         onClick = {
 
-                            category = item
+                            category = it
 
                             expanded = false
                         }
@@ -215,9 +197,6 @@ fun ArticleFormScreen(
             modifier = Modifier.height(16.dp)
         )
 
-        /*
-        ISI ARTIKEL
-         */
         OutlinedTextField(
 
             value = content,
@@ -242,39 +221,30 @@ fun ArticleFormScreen(
             modifier = Modifier.height(24.dp)
         )
 
-        /*
-        BUTTON SAVE
-         */
         Button(
 
             onClick = {
+                if (articleId == null) {
 
-                val newArticle = Article(
+                    viewModel.createArticle(
 
-                    id = articleId ?: "",
-
-                    title = title,
-
-                    content = content,
-
-                    category = category,
-
-                    createdAt =
-                        LocalDateTime
-                            .now()
-                            .toString()
-                )
-
-                if (isEdit) {
-
-                    viewModel.updateArticle(
-                        newArticle
+                        context = context,
+                        title = title,
+                        content = content,
+                        category = category,
+                        imageUri = null
                     )
 
                 } else {
 
-                    viewModel.createArticle(
-                        newArticle
+                    viewModel.updateArticle(
+
+                        article = article!!.copy(
+
+                            title = title,
+                            content = content,
+                            category = category
+                        )
                     )
                 }
             },
@@ -285,10 +255,10 @@ fun ArticleFormScreen(
 
             Text(
 
-                if (isEdit)
-                    "Update Artikel"
-                else
+                if (articleId == null)
                     "Publish Artikel"
+                else
+                    "Update Artikel"
             )
         }
 
@@ -296,9 +266,6 @@ fun ArticleFormScreen(
             modifier = Modifier.height(16.dp)
         )
 
-        /*
-        MESSAGE
-         */
         Text(message)
     }
 }

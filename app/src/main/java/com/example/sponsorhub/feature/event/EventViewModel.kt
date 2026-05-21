@@ -1,9 +1,10 @@
 package com.example.sponsorhub.feature.event
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.sponsorhub.data.model.Event
-import com.example.sponsorhub.data.model.SponsorshipRequest
+import com.example.sponsorhub.data.model.Events
 import com.example.sponsorhub.data.repository.AuthRepository
 import com.example.sponsorhub.data.repository.EventRepository
 import com.example.sponsorhub.data.repository.SponsorshipRepository
@@ -22,125 +23,174 @@ class EventViewModel : ViewModel() {
     private val sponsorshipRepository =
         SponsorshipRepository()
 
+    // EVENT LIST
     private val _events =
-        MutableStateFlow<List<Event>>(emptyList())
+        MutableStateFlow<List<Events>>(emptyList())
 
     val events =
         _events.asStateFlow()
 
-    private val _event =
-        MutableStateFlow<Event?>(null)
+    // SINGLE EVENT
+    private val _selectedEvent =
+        MutableStateFlow<Events?>(null)
 
-    val event =
-        _event.asStateFlow()
+    val selectedEvent =
+        _selectedEvent.asStateFlow()
 
+    // USER ROLE
     private val _role =
         MutableStateFlow("")
 
     val role =
         _role.asStateFlow()
 
-    private val _requests =
-        MutableStateFlow<List<SponsorshipRequest>>(
-            emptyList()
-        )
+    // SUCCESS STATE
+    private val _isSuccess =
+        MutableStateFlow(false)
 
-    val requests =
-        _requests.asStateFlow()
+    val isSuccess =
+        _isSuccess.asStateFlow()
 
-    private val _userRequest =
-        MutableStateFlow<SponsorshipRequest?>(null)
+    // ERROR / STATUS MESSAGE
+    private val _message =
+        MutableStateFlow("")
 
-    val userRequest =
-        _userRequest.asStateFlow()
+    val message =
+        _message.asStateFlow()
+
+    init {
+        loadRole()
+    }
+
+    fun loadRole() {
+
+        viewModelScope.launch {
+
+            _role.value =
+                authRepository
+                    .getCurrentUserRole()
+        }
+    }
 
     fun loadEvents() {
 
         viewModelScope.launch {
 
-            val role =
-                authRepository.getCurrentUserRole()
+            val currentRole =
+                authRepository
+                    .getCurrentUserRole()
 
-            _role.value = role
+            _role.value =
+                currentRole
 
             _events.value =
-                eventRepository.getEventsByRole(
-                    role
-                )
+                eventRepository
+                    .getEventsByRole(
+                        currentRole
+                    )
         }
     }
 
-    fun loadEventDetail(
+    fun loadEventById(
         eventId: String
     ) {
 
         viewModelScope.launch {
 
-            _event.value =
-                eventRepository.getEventById(
-                    eventId
-                )
-
-            val role =
-                authRepository.getCurrentUserRole()
-
-            _role.value = role
-
-            if (role == "panitia") {
-
-                _requests.value =
-                    sponsorshipRepository
-                        .getRequestsByEvent(
-                            eventId
-                        )
-
-            } else {
-
-                _userRequest.value =
-                    sponsorshipRepository
-                        .getUserRequestForEvent(
-                            eventId
-                        )
-            }
+            _selectedEvent.value =
+                eventRepository
+                    .getEventById(
+                        eventId
+                    )
         }
     }
 
-    fun deleteEvent(
-        eventId: String,
-        onSuccess: () -> Unit
+    fun createEvent(
+        context: Context,
+        title: String,
+        description: String,
+        location: String,
+        date: String,
+        imageUri: Uri?
     ) {
 
         viewModelScope.launch {
 
             val result =
-                eventRepository.deleteEvent(
-                    eventId
-                )
+                eventRepository
+                    .createEvent(
+                        context = context,
+                        title = title,
+                        description = description,
+                        location = location,
+                        date = date,
+                        imageUri = imageUri
+                    )
 
-            if (result.isSuccess) {
+            result.fold(
 
-                onSuccess()
-            }
+                onSuccess = {
+
+                    _isSuccess.value =
+                        true
+
+                    _message.value =
+                        "Event berhasil dibuat"
+
+                    loadEvents()
+                },
+
+                onFailure = {
+
+                    _isSuccess.value =
+                        false
+
+                    _message.value =
+                        it.message
+                            ?: "Gagal membuat event"
+                }
+            )
         }
     }
 
-    fun updateRequestStatus(
-        requestId: String,
-        status: String
+    fun deleteEvent(
+        eventId: String
     ) {
 
         viewModelScope.launch {
 
-            sponsorshipRepository
-                .updateRequestStatus(
-                    requestId,
-                    status
-                )
+            val result =
+                eventRepository
+                    .deleteEvent(
+                        eventId
+                    )
 
-            _event.value?.id?.let {
+            result.fold(
 
-                loadEventDetail(it)
-            }
+                onSuccess = {
+
+                    _message.value =
+                        "Event berhasil dihapus"
+
+                    loadEvents()
+                },
+
+                onFailure = {
+
+                    _message.value =
+                        it.message
+                            ?: "Gagal menghapus event"
+                }
+            )
         }
+    }
+
+    fun resetState() {
+
+        _isSuccess.value =
+            false
+
+        _message.value =
+            ""
     }
 }

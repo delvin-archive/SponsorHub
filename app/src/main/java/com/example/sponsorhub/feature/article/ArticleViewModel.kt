@@ -7,15 +7,14 @@ import com.example.sponsorhub.data.repository.ArticleRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.content.Context
+import android.net.Uri
 
 class ArticleViewModel : ViewModel() {
 
     private val repository =
         ArticleRepository()
 
-    /*
-    LIST ARTICLE
-     */
     private val _articles =
         MutableStateFlow<List<Article>>(
             emptyList()
@@ -24,36 +23,24 @@ class ArticleViewModel : ViewModel() {
     val articles =
         _articles.asStateFlow()
 
-    /*
-    DETAIL ARTICLE
-     */
     private val _article =
         MutableStateFlow<Article?>(null)
 
     val article =
         _article.asStateFlow()
 
-    /*
-    MESSAGE
-     */
     private val _message =
         MutableStateFlow("")
 
     val message =
         _message.asStateFlow()
 
-    /*
-    SUCCESS
-     */
     private val _isSuccess =
         MutableStateFlow(false)
 
     val isSuccess =
         _isSuccess.asStateFlow()
 
-    /*
-    LOAD ALL ARTICLES
-     */
     fun loadArticles() {
 
         viewModelScope.launch {
@@ -63,9 +50,6 @@ class ArticleViewModel : ViewModel() {
         }
     }
 
-    /*
-    LOAD DETAIL
-     */
     fun loadArticleDetail(
         articleId: String
     ) {
@@ -79,23 +63,26 @@ class ArticleViewModel : ViewModel() {
         }
     }
 
-    /*
-    CREATE ARTICLE
-     */
     fun createArticle(
-        article: Article
+        context: Context,
+        title: String,
+        content: String,
+        category: String,
+        imageUri: Uri?
     ) {
 
         viewModelScope.launch {
 
             val result =
                 repository.createArticle(
-                    article
+                    context,
+                    title,
+                    content,
+                    category,
+                    imageUri
                 )
 
             if (result.isSuccess) {
-
-                loadArticles()
 
                 _isSuccess.value = true
 
@@ -113,23 +100,35 @@ class ArticleViewModel : ViewModel() {
         }
     }
 
-    /*
-    UPDATE ARTICLE
-     */
+    fun resetState() {
+
+        _isSuccess.value = false
+
+        _message.value = ""
+    }
+    fun deleteArticle(
+        articleId: String
+    ) {
+
+        viewModelScope.launch {
+
+            repository.deleteArticle(
+                articleId
+            )
+        }
+    }
     fun updateArticle(
-        updatedArticle: Article
+        article: Article
     ) {
 
         viewModelScope.launch {
 
             val result =
                 repository.updateArticle(
-                    updatedArticle
+                    article
                 )
 
             if (result.isSuccess) {
-
-                loadArticles()
 
                 _isSuccess.value = true
 
@@ -145,44 +144,5 @@ class ArticleViewModel : ViewModel() {
                         ?: "Artikel gagal diupdate"
             }
         }
-    }
-
-    /*
-    DELETE ARTICLE
-     */
-    fun deleteArticle(
-        articleId: String
-    ) {
-
-        viewModelScope.launch {
-
-            val result =
-                repository.deleteArticle(
-                    articleId
-                )
-
-            if (result.isSuccess) {
-
-                loadArticles()
-
-                _message.value =
-                    "Artikel berhasil dihapus"
-
-            } else {
-
-                _message.value =
-                    result.exceptionOrNull()?.message
-                        ?: "Artikel gagal dihapus"
-            }
-        }
-    }
-
-    /*
-    RESET STATE
-     */
-    fun resetState() {
-
-        _isSuccess.value = false
-        _message.value = ""
     }
 }
