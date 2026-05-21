@@ -1,12 +1,17 @@
 package com.example.sponsorhub.data.repository
 
+import android.content.Context
+import android.net.Uri
 import com.example.sponsorhub.core.network.SupabaseManager
+import com.example.sponsorhub.core.utils.Constants
 import com.example.sponsorhub.data.model.Article
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.storage.storage
 
 class ArticleRepository {
 
-    private val client = SupabaseManager.client
+    private val client =
+        SupabaseManager.client
 
     suspend fun getArticles(): List<Article> {
 
@@ -19,6 +24,7 @@ class ArticleRepository {
 
         } catch (e: Exception) {
 
+            e.printStackTrace()
             emptyList()
         }
     }
@@ -32,9 +38,7 @@ class ArticleRepository {
             client
                 .from("articles")
                 .select {
-
                     filter {
-
                         eq("id", articleId)
                     }
                 }
@@ -43,15 +47,63 @@ class ArticleRepository {
 
         } catch (e: Exception) {
 
+            e.printStackTrace()
             null
         }
     }
 
     suspend fun createArticle(
-        article: Article
+        context: Context,
+        title: String,
+        content: String,
+        category: String,
+        imageUri: Uri?
     ): Result<Unit> {
 
         return try {
+
+            var imageUrl: String? =
+                null
+
+            if (imageUri != null) {
+
+                val bytes =
+                    context.contentResolver
+                        .openInputStream(imageUri)
+                        ?.readBytes()
+
+                if (bytes != null) {
+
+                    val fileName =
+                        "${System.currentTimeMillis()}.jpg"
+
+                    client.storage
+                        .from(
+                            Constants.ARTICLE_BUCKET
+                        )
+                        .upload(
+                            path = fileName,
+                            data = bytes
+                        ) {
+                            upsert = true
+                        }
+
+                    imageUrl =
+                        client.storage
+                            .from(
+                                Constants.ARTICLE_BUCKET
+                            )
+                            .publicUrl(fileName)
+                }
+            }
+
+            val article =
+                Article(
+                    title = title,
+                    content = content,
+                    category = category,
+                    imageUrl = imageUrl
+                )
 
             client
                 .from("articles")
@@ -61,6 +113,33 @@ class ArticleRepository {
 
         } catch (e: Exception) {
 
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteArticle(
+        articleId: String
+    ): Result<Unit> {
+
+        return try {
+
+            client
+                .from("articles")
+                .delete {
+                    filter {
+                        eq(
+                            "id",
+                            articleId
+                        )
+                    }
+                }
+
+            Result.success(Unit)
+
+        } catch (e: Exception) {
+
+            e.printStackTrace()
             Result.failure(e)
         }
     }

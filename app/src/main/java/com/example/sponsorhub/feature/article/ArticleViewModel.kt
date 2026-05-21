@@ -1,5 +1,7 @@
 package com.example.sponsorhub.feature.article
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sponsorhub.data.model.Article
@@ -21,17 +23,13 @@ class ArticleViewModel : ViewModel() {
     val articles =
         _articles.asStateFlow()
 
-    private val _article =
-        MutableStateFlow<Article?>(null)
+    private val _selectedArticle =
+        MutableStateFlow<Article?>(
+            null
+        )
 
-    val article =
-        _article.asStateFlow()
-
-    private val _message =
-        MutableStateFlow("")
-
-    val message =
-        _message.asStateFlow()
+    val selectedArticle =
+        _selectedArticle.asStateFlow()
 
     private val _isSuccess =
         MutableStateFlow(false)
@@ -39,61 +37,124 @@ class ArticleViewModel : ViewModel() {
     val isSuccess =
         _isSuccess.asStateFlow()
 
+    private val _message =
+        MutableStateFlow("")
+
+    val message =
+        _message.asStateFlow()
+
     fun loadArticles() {
 
         viewModelScope.launch {
 
             _articles.value =
-                repository.getArticles()
+                repository
+                    .getArticles()
         }
     }
 
-    fun loadArticleDetail(
+    fun loadArticleById(
         articleId: String
     ) {
 
         viewModelScope.launch {
 
-            _article.value =
-                repository.getArticleById(
-                    articleId
-                )
+            _selectedArticle.value =
+                repository
+                    .getArticleById(
+                        articleId
+                    )
         }
     }
 
     fun createArticle(
-        article: Article
+        context: Context,
+        title: String,
+        content: String,
+        category: String,
+        imageUri: Uri?
     ) {
 
         viewModelScope.launch {
 
             val result =
-                repository.createArticle(
-                    article
-                )
+                repository
+                    .createArticle(
+                        context =
+                            context,
+                        title = title,
+                        content =
+                            content,
+                        category =
+                            category,
+                        imageUri =
+                            imageUri
+                    )
 
-            if (result.isSuccess) {
+            result.fold(
 
-                _isSuccess.value = true
+                onSuccess = {
 
-                _message.value =
-                    "Artikel berhasil dibuat"
+                    _isSuccess.value =
+                        true
 
-            } else {
+                    _message.value =
+                        "Artikel berhasil dibuat"
 
-                _isSuccess.value = false
+                    loadArticles()
+                },
 
-                _message.value =
-                    result.exceptionOrNull()?.message
-                        ?: "Artikel gagal dibuat"
-            }
+                onFailure = {
+
+                    _isSuccess.value =
+                        false
+
+                    _message.value =
+                        it.message
+                            ?: "Gagal membuat artikel"
+                }
+            )
+        }
+    }
+
+    fun deleteArticle(
+        articleId: String
+    ) {
+
+        viewModelScope.launch {
+
+            val result =
+                repository
+                    .deleteArticle(
+                        articleId
+                    )
+
+            result.fold(
+
+                onSuccess = {
+
+                    _message.value =
+                        "Artikel berhasil dihapus"
+
+                    loadArticles()
+                },
+
+                onFailure = {
+
+                    _message.value =
+                        it.message
+                            ?: "Gagal menghapus artikel"
+                }
+            )
         }
     }
 
     fun resetState() {
 
-        _isSuccess.value = false
+        _isSuccess.value =
+            false
 
-        _message.value = ""
+        _message.value =
+            ""
     }
 }

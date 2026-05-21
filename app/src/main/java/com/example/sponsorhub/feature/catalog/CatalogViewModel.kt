@@ -5,8 +5,6 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sponsorhub.data.model.Product
-import com.example.sponsorhub.data.model.User
-import com.example.sponsorhub.data.repository.AuthRepository
 import com.example.sponsorhub.data.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,12 +12,10 @@ import kotlinx.coroutines.launch
 
 class CatalogViewModel : ViewModel() {
 
-    private val productRepository =
+    private val repository =
         ProductRepository()
 
-    private val authRepository =
-        AuthRepository()
-
+    // PRODUCT LIST
     private val _products =
         MutableStateFlow<List<Product>>(
             emptyList()
@@ -28,35 +24,50 @@ class CatalogViewModel : ViewModel() {
     val products =
         _products.asStateFlow()
 
-    private val _user =
-        MutableStateFlow<User?>(null)
+    // SELECTED PRODUCT
+    private val _selectedProduct =
+        MutableStateFlow<Product?>(
+            null
+        )
 
-    val user =
-        _user.asStateFlow()
+    val selectedProduct =
+        _selectedProduct.asStateFlow()
 
-    private val _message =
-        MutableStateFlow("")
-
-    val message =
-        _message.asStateFlow()
-
+    // SUCCESS STATE
     private val _isSuccess =
         MutableStateFlow(false)
 
     val isSuccess =
         _isSuccess.asStateFlow()
 
-    fun loadCatalog() {
+    // MESSAGE
+    private val _message =
+        MutableStateFlow("")
+
+    val message =
+        _message.asStateFlow()
+
+    fun loadProducts() {
 
         viewModelScope.launch {
 
-            _user.value =
-                authRepository
-                    .getCurrentUser()
-
             _products.value =
-                productRepository
-                    .getMyProducts()
+                repository
+                    .getProducts()
+        }
+    }
+
+    fun loadProductById(
+        productId: String
+    ) {
+
+        viewModelScope.launch {
+
+            _selectedProduct.value =
+                repository
+                    .getProductById(
+                        productId
+                    )
         }
     }
 
@@ -70,38 +81,81 @@ class CatalogViewModel : ViewModel() {
         viewModelScope.launch {
 
             val result =
-                productRepository
+                repository
                     .createProduct(
-                        context,
-                        name,
-                        description,
-                        imageUri
+                        context =
+                            context,
+                        name = name,
+                        description =
+                            description,
+                        imageUri =
+                            imageUri
                     )
 
-            if (result.isSuccess) {
+            result.fold(
 
-                _isSuccess.value = true
+                onSuccess = {
 
-                _message.value =
-                    "Produk berhasil dibuat"
+                    _isSuccess.value =
+                        true
 
-                loadCatalog()
+                    _message.value =
+                        "Produk berhasil ditambahkan"
 
-            } else {
+                    loadProducts()
+                },
 
-                _isSuccess.value = false
+                onFailure = {
 
-                _message.value =
-                    result.exceptionOrNull()?.message
-                        ?: "Produk gagal dibuat"
-            }
+                    _isSuccess.value =
+                        false
+
+                    _message.value =
+                        it.message
+                            ?: "Gagal menambahkan produk"
+                }
+            )
+        }
+    }
+
+    fun deleteProduct(
+        productId: String
+    ) {
+
+        viewModelScope.launch {
+
+            val result =
+                repository
+                    .deleteProduct(
+                        productId
+                    )
+
+            result.fold(
+
+                onSuccess = {
+
+                    _message.value =
+                        "Produk berhasil dihapus"
+
+                    loadProducts()
+                },
+
+                onFailure = {
+
+                    _message.value =
+                        it.message
+                            ?: "Gagal menghapus produk"
+                }
+            )
         }
     }
 
     fun resetState() {
 
-        _isSuccess.value = false
+        _isSuccess.value =
+            false
 
-        _message.value = ""
+        _message.value =
+            ""
     }
 }
