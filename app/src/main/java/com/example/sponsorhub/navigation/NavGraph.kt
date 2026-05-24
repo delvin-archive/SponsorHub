@@ -320,10 +320,8 @@ fun SponsorHubNavGraph() {
                         ) ?: ""
 
                 ArticleDetailScreen(
-                    articleId =
-                        articleId,
-                    navController =
-                        navController
+                    articleId = articleId,
+                    navController = navController
                 )
             }
 
@@ -333,6 +331,41 @@ fun SponsorHubNavGraph() {
 
                 ArticleFormScreen(
                     navController
+                )
+            }
+
+            /*
+            EDIT ARTICLE
+             */
+            composable(
+
+                route =
+                    "${Routes.ARTICLE_FORM}/{articleId}",
+
+                arguments = listOf(
+
+                    navArgument(
+                        "articleId"
+                    ) {
+
+                        type =
+                            NavType.StringType
+                    }
+                )
+            ) {
+
+                val articleId =
+                    it.arguments
+                        ?.getString(
+                            "articleId"
+                        )
+
+                ArticleFormScreen(
+
+                    navController =
+                        navController,
+                        articleId = articleId
+
                 )
             }
         }
