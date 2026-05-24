@@ -1,22 +1,22 @@
 package com.example.sponsorhub.data.repository
 
+import com.example.sponsorhub.core.network.RetrofitClient
 import com.example.sponsorhub.core.network.SupabaseManager
 import com.example.sponsorhub.data.model.SponsorshipRequest
 import com.example.sponsorhub.data.model.SponsorshipRequestWithUmkm
 import com.example.sponsorhub.data.model.User
 import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.from
 
 class SponsorshipRepository {
 
-    private val client = SupabaseManager.client
+    private val apiService = RetrofitClient.apiService
+    private val supabaseClient = SupabaseManager.client
 
     suspend fun createSponsorshipRequest(
         eventId: String,
         title: String,
         description: String
     ): Result<Unit> {
-
         return try {
 
             val userId =
@@ -31,22 +31,18 @@ class SponsorshipRepository {
                 status = "menunggu"
             )
 
-            client
-                .from("sponsorship_requests")
-                .insert(request)
-
-            Result.success(Unit)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Create sponsorship failed: ${response.code()} ${response.message()}"))
+            }
 
         } catch (e: Exception) {
-
             Result.failure(e)
         }
     }
 
-    suspend fun getRequestsByEvent(
-        eventId: String
-    ): List<SponsorshipRequest> {
-
+    suspend fun getRequestsByEvent(eventId: String): List<SponsorshipRequest> {
         return try {
 
             client
@@ -98,16 +94,14 @@ class SponsorshipRepository {
             }
 
         } catch (e: Exception) {
-
             emptyList()
         }
     }
 
-    suspend fun getUserRequestForEvent(
-        eventId: String
-    ): SponsorshipRequest? {
-
+    suspend fun getUserRequestForEvent(eventId: String): SponsorshipRequest? {
         return try {
+            val userId = supabaseClient.auth.currentUserOrNull()?.id
+                ?: return null
 
             val userId =
                 client.auth.currentUserOrNull()?.id
@@ -125,7 +119,6 @@ class SponsorshipRepository {
                 .firstOrNull()
 
         } catch (e: Exception) {
-
             null
         }
     }
@@ -134,8 +127,11 @@ class SponsorshipRepository {
         requestId: String,
         status: String
     ): Result<Unit> {
-
         return try {
+            val response = apiService.updateRequestStatus(
+                id = "eq.$requestId",
+                body = UpdateStatusRequest(status = status)
+            )
 
             client
                 .from("sponsorship_requests")
@@ -152,7 +148,6 @@ class SponsorshipRepository {
             Result.success(Unit)
 
         } catch (e: Exception) {
-
             Result.failure(e)
         }
     }

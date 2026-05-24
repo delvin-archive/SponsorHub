@@ -2,51 +2,31 @@ package com.example.sponsorhub.data.repository
 
 import android.content.Context
 import android.net.Uri
+import com.example.sponsorhub.core.network.RetrofitClient
 import com.example.sponsorhub.core.network.SupabaseManager
 import com.example.sponsorhub.core.utils.Constants
 import com.example.sponsorhub.data.model.Article
-import io.github.jan.supabase.postgrest.from
+import com.example.sponsorhub.data.remote.request.CreateArticleRequest
 import io.github.jan.supabase.storage.storage
 
 class ArticleRepository {
 
-    private val client =
-        SupabaseManager.client
+    private val apiService = RetrofitClient.apiService
+    private val supabaseClient = SupabaseManager.client
 
     suspend fun getArticles(): List<Article> {
-
         return try {
-
-            client
-                .from("articles")
-                .select()
-                .decodeList<Article>()
-
+            apiService.getArticles()
         } catch (e: Exception) {
-
             e.printStackTrace()
             emptyList()
         }
     }
 
-    suspend fun getArticleById(
-        articleId: String
-    ): Article? {
-
+    suspend fun getArticleById(articleId: String): Article? {
         return try {
-
-            client
-                .from("articles")
-                .select {
-                    filter {
-                        eq("id", articleId)
-                    }
-                }
-                .decodeList<Article>()
-                .firstOrNull()
-
+            apiService.getArticleById("eq.$articleId").firstOrNull()
         } catch (e: Exception) {
-
             e.printStackTrace()
             null
         }
@@ -59,86 +39,61 @@ class ArticleRepository {
         category: String,
         imageUri: Uri?
     ): Result<Unit> {
-
         return try {
-
-            var imageUrl: String? =
-                null
+            var imageUrl: String? = null
 
             if (imageUri != null) {
-
-                val bytes =
-                    context.contentResolver
-                        .openInputStream(imageUri)
-                        ?.readBytes()
+                val bytes = context.contentResolver
+                    .openInputStream(imageUri)
+                    ?.readBytes()
 
                 if (bytes != null) {
+                    val fileName = "${System.currentTimeMillis()}.jpg"
 
-                    val fileName =
-                        "${System.currentTimeMillis()}.jpg"
-
-                    client.storage
-                        .from(
-                            Constants.ARTICLE_BUCKET
-                        )
-                        .upload(
-                            path = fileName,
-                            data = bytes
-                        ) {
+                    supabaseClient.storage
+                        .from(Constants.ARTICLE_BUCKET)
+                        .upload(path = fileName, data = bytes) {
                             upsert = true
                         }
 
-                    imageUrl =
-                        client.storage
-                            .from(
-                                Constants.ARTICLE_BUCKET
-                            )
-                            .publicUrl(fileName)
+                    imageUrl = supabaseClient.storage
+                        .from(Constants.ARTICLE_BUCKET)
+                        .publicUrl(fileName)
                 }
             }
 
-            val article =
-                Article(
+            val response = apiService.createArticle(
+                CreateArticleRequest(
                     title = title,
                     content = content,
                     category = category,
                     imageUrl = imageUrl
                 )
+            )
 
-            client
-                .from("articles")
-                .insert(article)
-
-            Result.success(Unit)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Create article failed: ${response.code()} ${response.message()}"))
+            }
 
         } catch (e: Exception) {
-
             e.printStackTrace()
             Result.failure(e)
         }
     }
 
-    suspend fun deleteArticle(
-        articleId: String
-    ): Result<Unit> {
-
+    suspend fun deleteArticle(articleId: String): Result<Unit> {
         return try {
+            val response = apiService.deleteArticle("eq.$articleId")
 
-            client
-                .from("articles")
-                .delete {
-                    filter {
-                        eq(
-                            "id",
-                            articleId
-                        )
-                    }
-                }
-
-            Result.success(Unit)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Delete article failed: ${response.code()} ${response.message()}"))
+            }
 
         } catch (e: Exception) {
-
             e.printStackTrace()
             Result.failure(e)
         }
