@@ -7,6 +7,8 @@ import com.example.sponsorhub.data.repository.ArticleRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.content.Context
+import android.net.Uri
 
 class ArticleViewModel : ViewModel() {
 
@@ -62,14 +64,22 @@ class ArticleViewModel : ViewModel() {
     }
 
     fun createArticle(
-        article: Article
+        context: Context,
+        title: String,
+        content: String,
+        category: String,
+        imageUri: Uri?
     ) {
 
         viewModelScope.launch {
 
             val result =
                 repository.createArticle(
-                    article
+                    context,
+                    title,
+                    content,
+                    category,
+                    imageUri
                 )
 
             if (result.isSuccess) {
@@ -95,5 +105,44 @@ class ArticleViewModel : ViewModel() {
         _isSuccess.value = false
 
         _message.value = ""
+    }
+    fun deleteArticle(
+        articleId: String
+    ) {
+
+        viewModelScope.launch {
+
+            repository.deleteArticle(
+                articleId
+            )
+        }
+    }
+    fun updateArticle(
+        article: Article
+    ) {
+
+        viewModelScope.launch {
+
+            val result =
+                repository.updateArticle(
+                    article
+                )
+
+            if (result.isSuccess) {
+
+                _isSuccess.value = true
+
+                _message.value =
+                    "Artikel berhasil diupdate"
+
+            } else {
+
+                _isSuccess.value = false
+
+                _message.value =
+                    result.exceptionOrNull()?.message
+                        ?: "Artikel gagal diupdate"
+            }
+        }
     }
 }

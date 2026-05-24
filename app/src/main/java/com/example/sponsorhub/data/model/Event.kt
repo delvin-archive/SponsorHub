@@ -4,8 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Event(
-
+data class Events(
     @SerialName("id")
     val id: String = "",
 
@@ -15,15 +14,18 @@ data class Event(
     @SerialName("description")
     val description: String = "",
 
-    @SerialName("date")
-    val date: String = "",
-
     @SerialName("location")
     val location: String = "",
+
+    @SerialName("date")
+    val date: String = "",
 
     @SerialName("poster_url")
     val posterUrl: String? = null,
 
     @SerialName("created_by")
-    val createdBy: String = ""
+    val createdBy: String = "",
+
+    @SerialName("contact_number")
+    val contactNumber: String = ""
 )

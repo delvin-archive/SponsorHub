@@ -18,6 +18,9 @@ data class Article(
     @SerialName("category")
     val category: String = "",
 
+    @SerialName("image_url")
+    val imageUrl: String? = null,
+
     @SerialName("created_at")
-    val createdAt: String = ""
+    val createdAt: String? = null
 )

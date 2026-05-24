@@ -1,6 +1,15 @@
 package com.example.sponsorhub.feature.catalog
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -10,9 +19,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -26,125 +39,113 @@ fun CatalogScreen(
 ) {
 
     val products by
-    viewModel.products.collectAsState()
-
-    val user by
-    viewModel.user.collectAsState()
+    viewModel
+        .products
+        .collectAsState()
 
     LaunchedEffect(Unit) {
-
-        viewModel.loadCatalog()
+        viewModel.loadProducts()
     }
 
     Box(
-
         modifier = Modifier
             .fillMaxSize()
     ) {
 
         LazyColumn(
-
             modifier = Modifier
                 .fillMaxSize(),
 
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 16.dp,
-                bottom = 100.dp
-            ),
+            contentPadding =
+                PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 16.dp,
+                    bottom = 100.dp
+                ),
 
             verticalArrangement =
                 Arrangement.spacedBy(16.dp)
         ) {
 
-            item {
-
-                Text(
-
-                    text =
-                        user?.name ?: "",
-
-                    style =
-                        MaterialTheme
-                            .typography
-                            .headlineMedium
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(8.dp)
-                )
-
-                Text(
-                    text = "Katalog Produk"
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(8.dp)
-                )
-            }
-
             items(products) { product ->
 
                 Card(
-
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable {
+
+                            // nanti kalau ada ProductDetailScreen
+                            // navController.navigate("${Routes.PRODUCT_DETAIL}/${product.id}")
+                        }
                 ) {
 
-                    Column(
+                    Column {
 
-                        modifier = Modifier
-                            .padding(16.dp)
-                    ) {
+                        // PRODUCT IMAGE
+                        if (
+                            !product
+                                .productUrl
+                                .isNullOrBlank()
+                        ) {
 
-                        AsyncImage(
+                            AsyncImage(
+                                model =
+                                    product.productUrl,
 
-                            model =
-                                product.productUrl,
+                                contentDescription =
+                                    null,
 
-                            contentDescription =
-                                null,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(180.dp)
+                            )
+                        }
 
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(180.dp)
-                        )
+                        Column(
+                            modifier = Modifier
+                                .padding(16.dp)
+                        ) {
 
-                        Spacer(
-                            modifier =
-                                Modifier.height(12.dp)
-                        )
+                            // PRODUCT NAME
+                            Text(
+                                text =
+                                    product.productName,
 
-                        Text(
+                                style =
+                                    MaterialTheme
+                                        .typography
+                                        .titleLarge
+                            )
 
-                            text = product.productName,
+                            Spacer(
+                                modifier =
+                                    Modifier.height(8.dp)
+                            )
 
-                            style =
-                                MaterialTheme
-                                    .typography
-                                    .titleLarge
-                        )
+                            // PRODUCT DESCRIPTION
+                            Text(
+                                text =
+                                    product.description,
 
-                        Spacer(
-                            modifier =
-                                Modifier.height(8.dp)
-                        )
+                                style =
+                                    MaterialTheme
+                                        .typography
+                                        .bodyMedium,
 
-                        Text(
-                            text =
-                                product.description
-                        )
+                                maxLines = 3,
+                                overflow =
+                                    TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }
         }
 
+        // FAB TAMBAH PRODUCT
         FloatingActionButton(
-
             onClick = {
 
                 navController.navigate(
@@ -160,12 +161,11 @@ fun CatalogScreen(
         ) {
 
             Icon(
-
                 imageVector =
                     Icons.Default.Add,
 
                 contentDescription =
-                    null
+                    "Tambah Produk"
             )
         }
     }
