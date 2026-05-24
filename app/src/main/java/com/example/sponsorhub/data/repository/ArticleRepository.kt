@@ -98,4 +98,49 @@ class ArticleRepository {
             Result.failure(e)
         }
     }
+    suspend fun updateArticle(
+        article: Article
+    ): Result<Unit> {
+
+        return try {
+
+            client
+                .from("articles")
+                .update(
+
+                    {
+                        set(
+                            "title",
+                            article.title
+                        )
+
+                        set(
+                            "content",
+                            article.content
+                        )
+
+                        set(
+                            "category",
+                            article.category
+                        )
+                    }
+
+                ) {
+
+                    filter {
+
+                        eq(
+                            "id",
+                            article.id
+                        )
+                    }
+                }
+
+            Result.success(Unit)
+
+        } catch (e: Exception) {
+
+            Result.failure(e)
+        }
+    }
 }

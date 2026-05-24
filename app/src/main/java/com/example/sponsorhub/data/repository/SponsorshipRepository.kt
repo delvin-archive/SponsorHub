@@ -3,8 +3,8 @@ package com.example.sponsorhub.data.repository
 import com.example.sponsorhub.core.network.RetrofitClient
 import com.example.sponsorhub.core.network.SupabaseManager
 import com.example.sponsorhub.data.model.SponsorshipRequest
-import com.example.sponsorhub.data.remote.request.CreateSponsorshipRequest
-import com.example.sponsorhub.data.remote.request.UpdateStatusRequest
+import com.example.sponsorhub.data.model.SponsorshipRequestWithUmkm
+import com.example.sponsorhub.data.model.User
 import io.github.jan.supabase.auth.auth
 
 class SponsorshipRepository {
@@ -18,17 +18,17 @@ class SponsorshipRepository {
         description: String
     ): Result<Unit> {
         return try {
-            val userId = supabaseClient.auth.currentUserOrNull()?.id
-                ?: throw Exception("User not found")
 
-            val response = apiService.createSponsorshipRequest(
-                CreateSponsorshipRequest(
-                    eventId = eventId,
-                    umkmId = userId,
-                    title = title,
-                    description = description,
-                    status = "menunggu"
-                )
+            val userId =
+                client.auth.currentUserOrNull()?.id
+                    ?: throw Exception("User not found")
+
+            val request = SponsorshipRequest(
+                eventId = eventId,
+                umkmId = userId,
+                title = title,
+                description = description,
+                status = "menunggu"
             )
 
             if (response.isSuccessful) {
@@ -44,7 +44,55 @@ class SponsorshipRepository {
 
     suspend fun getRequestsByEvent(eventId: String): List<SponsorshipRequest> {
         return try {
-            apiService.getRequestsByEvent("eq.$eventId")
+
+            client
+                .from("sponsorship_requests")
+                .select {
+                    filter {
+                        eq("event_id", eventId)
+                    }
+                }
+                .decodeList<SponsorshipRequest>()
+
+        } catch (e: Exception) {
+
+            emptyList()
+        }
+    }
+
+    suspend fun getRequestsWithUmkmByEvent(
+        eventId: String
+    ): List<SponsorshipRequestWithUmkm> {
+
+        return try {
+
+            val requests = client
+                .from("sponsorship_requests")
+                .select {
+                    filter {
+                        eq("event_id", eventId)
+                    }
+                }
+                .decodeList<SponsorshipRequest>()
+
+            requests.map { request ->
+
+                val umkm = client
+                    .from("users")
+                    .select {
+                        filter {
+                            eq("id", request.umkmId)
+                        }
+                    }
+                    .decodeList<User>()
+                    .firstOrNull()
+
+                SponsorshipRequestWithUmkm(
+                    request = request,
+                    umkm = umkm
+                )
+            }
+
         } catch (e: Exception) {
             emptyList()
         }
@@ -55,10 +103,20 @@ class SponsorshipRepository {
             val userId = supabaseClient.auth.currentUserOrNull()?.id
                 ?: return null
 
-            apiService.getUserRequestForEvent(
-                eventId = "eq.$eventId",
-                umkmId = "eq.$userId"
-            ).firstOrNull()
+            val userId =
+                client.auth.currentUserOrNull()?.id
+                    ?: return null
+
+            client
+                .from("sponsorship_requests")
+                .select {
+                    filter {
+                        eq("event_id", eventId)
+                        eq("umkm_id", userId)
+                    }
+                }
+                .decodeList<SponsorshipRequest>()
+                .firstOrNull()
 
         } catch (e: Exception) {
             null
@@ -75,11 +133,19 @@ class SponsorshipRepository {
                 body = UpdateStatusRequest(status = status)
             )
 
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("Update status failed: ${response.code()} ${response.message()}"))
-            }
+            client
+                .from("sponsorship_requests")
+                .update(
+                    {
+                        set("status", status)
+                    }
+                ) {
+                    filter {
+                        eq("id", requestId)
+                    }
+                }
+
+            Result.success(Unit)
 
         } catch (e: Exception) {
             Result.failure(e)
