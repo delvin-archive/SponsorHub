@@ -1,14 +1,12 @@
 package com.example.sponsorhub.core.utils
 
-import java.lang.System.getenv
-
 object Constants {
 
     // GANTI DENGAN URL SUPABASE KALIAN
-    val SUPABASE_URL = "https://rhzmueirbydubindaydp.supabase.co"
+    val SUPABASE_URL = ""
 
     // GANTI DENGAN ANON KEY
-    val SUPABASE_ANON_KEY = "sb_publishable__r2FYovx2sVByJHbP-3xZg_ha-Caei2"
+    val SUPABASE_ANON_KEY = ""
 
     // STORAGE BUCKET
     const val EVENT_BUCKET = "event_posters"
