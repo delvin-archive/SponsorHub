@@ -80,4 +80,9 @@ dependencies {
 
     //Navigation
     implementation(libs.androidx.navigation.compose)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.kotlinx.serialization.converter)
+    implementation(libs.okhttp.logging.interceptor)
 }

@@ -4,11 +4,12 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sponsorhub.core.network.RetrofitClient
 import com.example.sponsorhub.core.network.SupabaseManager
 import com.example.sponsorhub.data.model.User
+import com.example.sponsorhub.data.remote.request.UpdateProfileImageRequest
 import com.example.sponsorhub.data.repository.AuthRepository
 import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,45 +17,18 @@ import kotlinx.coroutines.launch
 
 class ProfileViewModel : ViewModel() {
 
-    private val client = SupabaseManager.client
+    private val supabaseClient = SupabaseManager.client
+    private val authRepository = AuthRepository()
+    private val apiService = RetrofitClient.apiService
 
-    private val authRepository =
-        AuthRepository()
-
-    private val _user =
-        MutableStateFlow<User?>(null)
-
-    val user =
-        _user.asStateFlow()
+    private val _user = MutableStateFlow<User?>(null)
+    val user = _user.asStateFlow()
 
     fun loadProfile() {
-
         viewModelScope.launch {
-
             try {
-
-                val userId =
-                    client.auth.currentUserOrNull()?.id
-                        ?: return@launch
-
-                val result =
-                    client
-                        .from("users")
-                        .select {
-
-                            filter {
-
-                                eq("id", userId)
-                            }
-                        }
-                        .decodeList<User>()
-                        .firstOrNull()
-
-                _user.value = result
-
-            } catch (_: Exception) {
-
-            }
+                _user.value = authRepository.getCurrentUser()
+            } catch (_: Exception) { }
         }
     }
 
@@ -62,75 +36,41 @@ class ProfileViewModel : ViewModel() {
         context: Context,
         imageUri: Uri
     ) {
-
         viewModelScope.launch {
-
             try {
+                val userId = supabaseClient.auth.currentUserOrNull()?.id
+                    ?: return@launch
 
-                val userId =
-                    client.auth.currentUserOrNull()?.id
-                        ?: return@launch
+                val bytes = context.contentResolver
+                    .openInputStream(imageUri)
+                    ?.readBytes()
+                    ?: return@launch
 
-                val bytes =
-                    context.contentResolver
-                        .openInputStream(imageUri)
-                        ?.readBytes()
-                        ?: return@launch
+                val fileName = "$userId.jpg"
 
-                val fileName =
-                    "$userId.jpg"
+                val bucket = supabaseClient.storage.from("profile_images")
 
-                val bucket =
-                    client.storage
-                        .from("profile_images")
-
-                bucket.upload(
-
-                    path = fileName,
-
-                    data = bytes
-
-                ) {
-
+                bucket.upload(path = fileName, data = bytes) {
                     upsert = true
                 }
 
-                val imageUrl =
-                    bucket.publicUrl(fileName)
+                val imageUrl = bucket.publicUrl(fileName)
 
-                client
-                    .from("users")
-                    .update(
-                        {
-                            set(
-                                "profile_image",
-                                imageUrl
-                            )
-                        }
-                    ) {
-
-                        filter {
-
-                            eq("id", userId)
-                        }
-                    }
+                // Update profile_image via Retrofit (bukan langsung postgrest)
+                apiService.updateProfileImage(
+                    id = "eq.$userId",
+                    body = UpdateProfileImageRequest(profileImage = imageUrl)
+                )
 
                 loadProfile()
 
-            } catch (_: Exception) {
-
-            }
+            } catch (_: Exception) { }
         }
     }
 
-    fun logout(
-        onSuccess: () -> Unit
-    ) {
-
+    fun logout(onSuccess: () -> Unit) {
         viewModelScope.launch {
-
             authRepository.logout()
-
             onSuccess()
         }
     }
