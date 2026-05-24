@@ -20,6 +20,10 @@ import androidx.navigation.NavHostController
 import com.example.sponsorhub.data.repository.AuthRepository
 import com.example.sponsorhub.navigation.Routes
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.Arrangement
 
 @Composable
 fun ArticleListScreen(
@@ -72,7 +76,7 @@ fun ArticleListScreen(
                 start = 16.dp,
                 end = 16.dp,
                 top = 16.dp,
-                bottom = 100.dp
+                bottom = 140.dp
             ),
 
             verticalArrangement =
@@ -82,22 +86,78 @@ fun ArticleListScreen(
             items(articles) { article ->
 
                 Card(
-
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
 
-                            navController.navigate(
-                                "${Routes.ARTICLE_DETAIL}/${article.id}"
-                            )
-                        }
                 ) {
 
                     Column(
 
                         modifier = Modifier
                             .padding(16.dp)
+                            .clickable {
+
+                                navController.navigate(
+                                    "${Routes.ARTICLE_DETAIL}/${article.id}"
+                                )
+                            }
                     ) {
+                        Row(
+
+                            modifier = Modifier
+                                .fillMaxWidth(),
+
+                            horizontalArrangement =
+                                Arrangement.End
+                        ) {
+
+                            IconButton(
+
+                                onClick = {
+
+                                    navController.navigate(
+                                        "${Routes.ARTICLE_FORM}/${article.id}"
+                                    )
+                                }
+                            ) {
+
+                                Icon(
+
+                                    imageVector =
+                                        Icons.Default.Edit,
+
+                                    contentDescription =
+                                        "Edit Artikel"
+                                )
+                            }
+
+                            IconButton(
+
+                                onClick = {
+
+                                    viewModel.deleteArticle(
+                                        article.id
+                                    )
+
+                                    viewModel.loadArticles()
+                                }
+                            ) {
+
+                                Icon(
+
+                                    imageVector =
+                                        Icons.Default.Delete,
+
+                                    contentDescription =
+                                        "Hapus Artikel",
+
+                                    tint =
+                                        MaterialTheme
+                                            .colorScheme
+                                            .error
+                                )
+                            }
+                        }
 
                         Text(
 

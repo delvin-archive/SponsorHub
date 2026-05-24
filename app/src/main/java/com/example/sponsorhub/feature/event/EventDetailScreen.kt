@@ -1,13 +1,28 @@
 package com.example.sponsorhub.feature.event
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.sponsorhub.navigation.Routes
 
 @Composable
@@ -19,321 +34,207 @@ fun EventDetailScreen(
 ) {
 
     val event by
-    viewModel.event.collectAsState()
+    viewModel
+        .selectedEvent
+        .collectAsState()
 
     val role by
-    viewModel.role.collectAsState()
+    viewModel
+        .role
+        .collectAsState()
 
-    val requests by
-    viewModel.requests.collectAsState()
-
-    val userRequest by
-    viewModel.userRequest.collectAsState()
+    val message by
+    viewModel
+        .message
+        .collectAsState()
 
     LaunchedEffect(Unit) {
 
-        viewModel.loadEventDetail(
+        viewModel.loadRole()
+        viewModel.loadEventById(
             eventId
         )
     }
 
-    LazyColumn(
+    if (event == null) {
 
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement =
+                Arrangement.Center,
+            horizontalAlignment =
+                Alignment.CenterHorizontally
+        ) {
+
+            CircularProgressIndicator()
+        }
+
+        return
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .verticalScroll(
+                rememberScrollState()
+            )
+            .padding(20.dp)
     ) {
 
-        item {
+        // EVENT POSTER
+        if (
+            !event
+                ?.posterUrl
+                .isNullOrBlank()
+        ) {
 
-            Text(
-
-                text = event?.title ?: "",
-
-                style =
-                    MaterialTheme
-                        .typography
-                        .headlineMedium
+            AsyncImage(
+                model =
+                    event?.posterUrl,
+                contentDescription =
+                    null,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(240.dp)
             )
+        }
 
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
+        Spacer(
+            modifier =
+                Modifier.height(20.dp)
+        )
 
-            Text(
-                text = event?.description ?: ""
-            )
+        // TITLE
+        Text(
+            text =
+                event?.title
+                    ?: "",
+            style =
+                MaterialTheme
+                    .typography
+                    .headlineMedium
+        )
 
-            Spacer(
-                modifier = Modifier.height(12.dp)
-            )
+        Spacer(
+            modifier =
+                Modifier.height(12.dp)
+        )
 
-            Text(
-                text =
-                    "Lokasi : ${event?.location}"
-            )
+        // LOCATION
+        AssistChip(
+            onClick = {},
+            label = {
+                Text(
+                    event?.location
+                        ?: ""
+                )
+            }
+        )
 
-            Spacer(
-                modifier = Modifier.height(6.dp)
-            )
+        Spacer(
+            modifier =
+                Modifier.height(8.dp)
+        )
 
-            Text(
-                text =
-                    "Tanggal : ${event?.date}"
-            )
+        // DATE
+        Text(
+            text =
+                event?.date
+                    ?: "",
+            style =
+                MaterialTheme
+                    .typography
+                    .bodyMedium
+        )
 
-            Spacer(
-                modifier = Modifier.height(24.dp)
-            )
+        Spacer(
+            modifier =
+                Modifier.height(20.dp)
+        )
+
+        // DESCRIPTION
+        Text(
+            text =
+                event?.description
+                    ?: "",
+            style =
+                MaterialTheme
+                    .typography
+                    .bodyLarge
+        )
+
+        Spacer(
+            modifier =
+                Modifier.height(32.dp)
+        )
+
+        // ROLE-BASED ACTION
+        if (role == "umkm") {
+
+            Button(
+                onClick = {
+
+                    navController
+                        .navigate(
+                            "${Routes.SPONSORSHIP_FORM}/$eventId"
+                        )
+                },
+                modifier =
+                    Modifier.fillMaxWidth()
+            ) {
+
+                Text(
+                    "Ajukan Sponsorship"
+                )
+            }
         }
 
         if (role == "panitia") {
 
-            item {
+            Button(
+                onClick = {
 
-                Row {
+                    event?.id?.let {
 
-                    Button(
-
-                        onClick = {
-
-                            navController.navigate(
-                                "${Routes.EVENT_FORM}/${eventId}"
+                        viewModel
+                            .deleteEvent(
+                                it
                             )
-                        }
-                    ) {
 
-                        Text("Edit")
+                        navController
+                            .popBackStack()
                     }
-
-                    Spacer(
-                        modifier =
-                            Modifier.width(12.dp)
-                    )
-
-                    Button(
-
-                        onClick = {
-
-                            viewModel.deleteEvent(
-                                eventId
-                            ) {
-
-                                navController.popBackStack()
-                            }
-                        },
-
-                        colors =
-                            ButtonDefaults
-                                .buttonColors(
-                                    containerColor =
-                                        MaterialTheme
-                                            .colorScheme
-                                            .error
-                                )
-                    ) {
-
-                        Text("Delete")
-                    }
-                }
-
-                Spacer(
-                    modifier =
-                        Modifier.height(32.dp)
-                )
+                },
+                modifier =
+                    Modifier.fillMaxWidth()
+            ) {
 
                 Text(
-
-                    text = "Pengajuan Sponsorship",
-
-                    style =
-                        MaterialTheme
-                            .typography
-                            .titleLarge
+                    "Hapus Event"
                 )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(16.dp)
-                )
-            }
-
-            items(requests) { request ->
-
-                Card(
-
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                ) {
-
-                    Column(
-
-                        modifier = Modifier
-                            .padding(16.dp)
-                    ) {
-
-                        Text(
-                            text = request.title
-                        )
-
-                        Spacer(
-                            modifier =
-                                Modifier.height(8.dp)
-                        )
-
-                        Text(
-                            text = request.description
-                        )
-
-                        Spacer(
-                            modifier =
-                                Modifier.height(8.dp)
-                        )
-
-                        Text(
-                            text =
-                                "Status : ${request.status}"
-                        )
-
-                        if (request.status == "menunggu") {
-
-                            Spacer(
-                                modifier =
-                                    Modifier.height(12.dp)
-                            )
-
-                            Row {
-
-                                Button(
-
-                                    onClick = {
-
-                                        viewModel
-                                            .updateRequestStatus(
-                                                request.id,
-                                                "diterima"
-                                            )
-                                    }
-                                ) {
-
-                                    Text("Terima")
-                                }
-
-                                Spacer(
-                                    modifier =
-                                        Modifier.width(
-                                            12.dp
-                                        )
-                                )
-
-                                Button(
-
-                                    onClick = {
-
-                                        viewModel
-                                            .updateRequestStatus(
-                                                request.id,
-                                                "ditolak"
-                                            )
-                                    }
-                                ) {
-
-                                    Text("Tolak")
-                                }
-                            }
-                        }
-
-                        if (request.status == "diterima") {
-
-                            Spacer(
-                                modifier =
-                                    Modifier.height(
-                                        12.dp
-                                    )
-                            )
-
-                            Button(
-
-                                onClick = {
-
-                                    navController.navigate(
-                                        "${Routes.REVIEW}/${request.id}"
-                                    )
-                                }
-                            ) {
-
-                                Text("Beri Review")
-                            }
-                        }
-                    }
-                }
             }
         }
 
-        if (role == "umkm") {
+        if (
+            message.isNotBlank()
+        ) {
 
-            item {
+            Spacer(
+                modifier =
+                    Modifier.height(
+                        12.dp
+                    )
+            )
 
-                if (userRequest == null) {
-
-                    Button(
-
-                        onClick = {
-
-                            navController.navigate(
-                                "${Routes.SPONSORSHIP_FORM}/${eventId}"
-                            )
-                        },
-
-                        modifier =
-                            Modifier.fillMaxWidth()
-                    ) {
-
-                        Text(
-                            "Ajukan Sponsorship"
-                        )
-                    }
-
-                } else {
-
-                    Card(
-
-                        modifier =
-                            Modifier.fillMaxWidth()
-                    ) {
-
-                        Column(
-
-                            modifier =
-                                Modifier.padding(
-                                    16.dp
-                                )
-                        ) {
-
-                            Text(
-                                text =
-                                    userRequest?.title
-                                        ?: ""
-                            )
-
-                            Spacer(
-                                modifier =
-                                    Modifier.height(
-                                        8.dp
-                                    )
-                            )
-
-                            Text(
-                                text =
-                                    "Status : ${
-                                        userRequest?.status
-                                    }"
-                            )
-                        }
-                    }
-                }
-            }
+            Text(
+                text = message,
+                color =
+                    MaterialTheme
+                        .colorScheme
+                        .error
+            )
         }
     }
 }

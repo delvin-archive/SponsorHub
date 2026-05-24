@@ -8,20 +8,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.sponsorhub.data.model.Article
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock.System.now
-import kotlin.time.ExperimentalTime
+import androidx.compose.ui.platform.LocalContext
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleFormScreen(
     navController: NavHostController,
+    articleId: String? = null,
     viewModel: ArticleViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+
+    val context =
+        LocalContext.current
 
     var title by remember {
 
@@ -37,7 +36,30 @@ fun ArticleFormScreen(
 
         mutableStateOf("bisnis")
     }
+    val article by
+    viewModel.article.collectAsState()
 
+    LaunchedEffect(articleId) {
+
+        if (articleId != null) {
+
+            viewModel.loadArticleDetail(
+                articleId
+            )
+        }
+    }
+
+    LaunchedEffect(article) {
+
+        article?.let {
+
+            title = it.title
+
+            content = it.content
+
+            category = it.category
+        }
+    }
     var expanded by remember {
 
         mutableStateOf(false)
@@ -45,9 +67,9 @@ fun ArticleFormScreen(
 
     val categories = listOf(
 
-        "bisnis",
-        "sponsorship",
-        "event"
+        "Bisnis",
+        "Sponsorship",
+        "Event"
     )
 
     val isSuccess by
@@ -202,29 +224,42 @@ fun ArticleFormScreen(
         Button(
 
             onClick = {
+                if (articleId == null) {
 
-                val article = Article(
+                    viewModel.createArticle(
 
-                    title = title,
+                        context = context,
+                        title = title,
+                        content = content,
+                        category = category,
+                        imageUri = null
+                    )
 
-                    content = content,
+                } else {
 
-                    category = category,
+                    viewModel.updateArticle(
 
-                    createdAt =
-                        now().toLocalDateTime(TimeZone.currentSystemDefault()).toString()
-                )
+                        article = article!!.copy(
 
-                viewModel.createArticle(
-                    article
-                )
+                            title = title,
+                            content = content,
+                            category = category
+                        )
+                    )
+                }
             },
 
             modifier =
                 Modifier.fillMaxWidth()
         ) {
 
-            Text("Publish Artikel")
+            Text(
+
+                if (articleId == null)
+                    "Publish Artikel"
+                else
+                    "Update Artikel"
+            )
         }
 
         Spacer(

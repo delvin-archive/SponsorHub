@@ -24,7 +24,6 @@ import com.example.sponsorhub.feature.profile.ProfileScreen
 import com.example.sponsorhub.feature.review.ReviewScreen
 import com.example.sponsorhub.feature.sponsorship.SponsorshipFormScreen
 import io.github.jan.supabase.auth.auth
-import kotlinx.coroutines.launch
 
 @Composable
 fun SponsorHubNavGraph() {
@@ -35,32 +34,28 @@ fun SponsorHubNavGraph() {
     val client =
         SupabaseManager.client
 
-    val scope =
-        rememberCoroutineScope()
-
     val authRepository =
         remember {
-
             AuthRepository()
         }
 
     var role by remember {
-
         mutableStateOf("")
     }
 
     var startDestination by remember {
-
         mutableStateOf(Routes.LOGIN)
     }
 
     val currentBackStackEntry by
     navController.currentBackStackEntryAsState()
 
+    // INIT SESSION
     LaunchedEffect(Unit) {
 
         val currentUser =
-            client.auth.currentUserOrNull()
+            client.auth
+                .currentUserOrNull()
 
         if (currentUser != null) {
 
@@ -69,14 +64,7 @@ fun SponsorHubNavGraph() {
                     .getCurrentUserRole()
 
             startDestination =
-
-                if (role == "panitia")
-
-                    Routes.EVENT_LIST
-
-                else
-
-                    Routes.CATALOG
+                Routes.EVENT_LIST
 
         } else {
 
@@ -85,7 +73,11 @@ fun SponsorHubNavGraph() {
         }
     }
 
-    LaunchedEffect(currentBackStackEntry) {
+    // REFRESH ROLE ON NAVIGATION
+    LaunchedEffect(
+        currentBackStackEntry
+    ) {
+
         role =
             authRepository
                 .getCurrentUserRole()
@@ -93,12 +85,9 @@ fun SponsorHubNavGraph() {
 
     val showBottomBar =
 
-        navController
-            .currentBackStackEntryAsState()
-            .value
+        currentBackStackEntry
             ?.destination
             ?.route !in listOf(
-
             Routes.LOGIN,
             Routes.REGISTER
         )
@@ -110,10 +99,8 @@ fun SponsorHubNavGraph() {
             if (showBottomBar) {
 
                 BottomNavBar(
-
                     navController =
                         navController,
-
                     role = role
                 )
             }
@@ -121,7 +108,6 @@ fun SponsorHubNavGraph() {
     ) { innerPadding ->
 
         NavHost(
-
             navController =
                 navController,
 
@@ -135,7 +121,6 @@ fun SponsorHubNavGraph() {
         ) {
 
             // AUTH
-
             composable(
                 Routes.LOGIN
             ) {
@@ -155,7 +140,6 @@ fun SponsorHubNavGraph() {
             }
 
             // PROFILE
-
             composable(
                 Routes.PROFILE
             ) {
@@ -164,23 +148,18 @@ fun SponsorHubNavGraph() {
 
                     onLogout = {
 
-                        scope.launch {
-
-                            role = ""
-
-                            navController.navigate(
+                        navController
+                            .navigate(
                                 Routes.LOGIN
                             ) {
 
                                 popUpTo(0)
                             }
-                        }
                     }
                 )
             }
 
             // EVENT
-
             composable(
                 Routes.EVENT_LIST
             ) {
@@ -191,20 +170,19 @@ fun SponsorHubNavGraph() {
             }
 
             composable(
-
                 route =
                     "${Routes.EVENT_DETAIL}/{eventId}",
 
-                arguments = listOf(
-
-                    navArgument(
-                        "eventId"
-                    ) {
-
-                        type =
-                            NavType.StringType
-                    }
-                )
+                arguments =
+                    listOf(
+                        navArgument(
+                            "eventId"
+                        ) {
+                            type =
+                                NavType
+                                    .StringType
+                        }
+                    )
             ) {
 
                 val eventId =
@@ -214,12 +192,9 @@ fun SponsorHubNavGraph() {
                         ) ?: ""
 
                 EventDetailScreen(
-
                     navController =
                         navController,
-
-                    eventId =
-                        eventId
+                    eventId = eventId
                 )
             }
 
@@ -232,41 +207,7 @@ fun SponsorHubNavGraph() {
                 )
             }
 
-            composable(
-
-                route =
-                    "${Routes.EVENT_FORM}/{eventId}",
-
-                arguments = listOf(
-
-                    navArgument(
-                        "eventId"
-                    ) {
-
-                        type =
-                            NavType.StringType
-                    }
-                )
-            ) {
-
-                val eventId =
-                    it.arguments
-                        ?.getString(
-                            "eventId"
-                        )
-
-                EventFormScreen(
-
-                    navController =
-                        navController,
-
-                    eventId =
-                        eventId
-                )
-            }
-
             // CATALOG
-
             composable(
                 Routes.CATALOG
             ) {
@@ -286,22 +227,20 @@ fun SponsorHubNavGraph() {
             }
 
             // SPONSORSHIP
-
             composable(
-
                 route =
                     "${Routes.SPONSORSHIP_FORM}/{eventId}",
 
-                arguments = listOf(
-
-                    navArgument(
-                        "eventId"
-                    ) {
-
-                        type =
-                            NavType.StringType
-                    }
-                )
+                arguments =
+                    listOf(
+                        navArgument(
+                            "eventId"
+                        ) {
+                            type =
+                                NavType
+                                    .StringType
+                        }
+                    )
             ) {
 
                 val eventId =
@@ -311,32 +250,27 @@ fun SponsorHubNavGraph() {
                         ) ?: ""
 
                 SponsorshipFormScreen(
-
                     navController =
                         navController,
-
-                    eventId =
-                        eventId
+                    eventId = eventId
                 )
             }
 
             // REVIEW
-
             composable(
-
                 route =
                     "${Routes.REVIEW}/{sponsorshipId}",
 
-                arguments = listOf(
-
-                    navArgument(
-                        "sponsorshipId"
-                    ) {
-
-                        type =
-                            NavType.StringType
-                    }
-                )
+                arguments =
+                    listOf(
+                        navArgument(
+                            "sponsorshipId"
+                        ) {
+                            type =
+                                NavType
+                                    .StringType
+                        }
+                    )
             ) {
 
                 val sponsorshipId =
@@ -346,17 +280,14 @@ fun SponsorHubNavGraph() {
                         ) ?: ""
 
                 ReviewScreen(
-
                     navController =
                         navController,
-
                     sponsorshipId =
                         sponsorshipId
                 )
             }
 
             // ARTICLE
-
             composable(
                 Routes.ARTICLE_LIST
             ) {
@@ -367,9 +298,49 @@ fun SponsorHubNavGraph() {
             }
 
             composable(
-
                 route =
                     "${Routes.ARTICLE_DETAIL}/{articleId}",
+
+                arguments =
+                    listOf(
+                        navArgument(
+                            "articleId"
+                        ) {
+                            type =
+                                NavType
+                                    .StringType
+                        }
+                    )
+            ) {
+
+                val articleId =
+                    it.arguments
+                        ?.getString(
+                            "articleId"
+                        ) ?: ""
+
+                ArticleDetailScreen(
+                    articleId = articleId,
+                    navController = navController
+                )
+            }
+
+            composable(
+                Routes.ARTICLE_FORM
+            ) {
+
+                ArticleFormScreen(
+                    navController
+                )
+            }
+
+            /*
+            EDIT ARTICLE
+             */
+            composable(
+
+                route =
+                    "${Routes.ARTICLE_FORM}/{articleId}",
 
                 arguments = listOf(
 
@@ -387,19 +358,14 @@ fun SponsorHubNavGraph() {
                     it.arguments
                         ?.getString(
                             "articleId"
-                        ) ?: ""
-
-                ArticleDetailScreen(
-                    articleId
-                )
-            }
-
-            composable(
-                Routes.ARTICLE_FORM
-            ) {
+                        )
 
                 ArticleFormScreen(
-                    navController
+
+                    navController =
+                        navController,
+                        articleId = articleId
+
                 )
             }
         }

@@ -1,17 +1,22 @@
 package com.example.sponsorhub.data.repository
 
+import android.content.Context
+import android.net.Uri
 import com.example.sponsorhub.core.network.SupabaseManager
-import com.example.sponsorhub.data.model.Event
+import com.example.sponsorhub.core.utils.Constants
+import com.example.sponsorhub.data.model.Events
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.storage.storage
 
 class EventRepository {
 
-    private val client = SupabaseManager.client
+    private val client =
+        SupabaseManager.client
 
     suspend fun getEventsByRole(
         role: String
-    ): List<Event> {
+    ): List<Events> {
 
         return try {
 
@@ -24,57 +29,124 @@ class EventRepository {
                 client
                     .from("events")
                     .select {
-
                         filter {
-
-                            eq("created_by", userId)
+                            eq(
+                                "created_by",
+                                userId
+                            )
                         }
                     }
-                    .decodeList<Event>()
+                    .decodeList<Events>()
 
             } else {
 
                 client
                     .from("events")
                     .select()
-                    .decodeList<Event>()
+                    .decodeList<Events>()
             }
 
         } catch (e: Exception) {
 
+            e.printStackTrace()
             emptyList()
         }
     }
 
     suspend fun getEventById(
         eventId: String
-    ): Event? {
+    ): Events? {
 
         return try {
 
             client
                 .from("events")
                 .select {
-
                     filter {
-
                         eq("id", eventId)
                     }
                 }
-                .decodeList<Event>()
+                .decodeList<Events>()
                 .firstOrNull()
 
         } catch (e: Exception) {
 
+            e.printStackTrace()
             null
         }
     }
 
     suspend fun createEvent(
-        event: Event
+        context: Context,
+        title: String,
+        description: String,
+        location: String,
+        date: String,
+        imageUri: Uri?
     ): Result<Unit> {
 
         return try {
+
+            val userId =
+                client.auth
+                    .currentUserOrNull()
+                    ?.id
+                    ?: throw Exception(
+                        "User not found"
+                    )
+
+            var imageUrl: String? =
+                null
+
+            if (imageUri != null) {
+
+                val bytes =
+                    context.contentResolver
+                        .openInputStream(
+                            imageUri
+                        )
+                        ?.readBytes()
+
+                if (bytes != null) {
+
+                    val fileName =
+                        "${System.currentTimeMillis()}.jpg"
+
+                    client.storage
+                        .from(
+                            Constants.EVENT_BUCKET
+                        )
+                        .upload(
+                            path = fileName,
+                            data = bytes
+                        ) {
+                            upsert = true
+                        }
+
+                    imageUrl =
+                        client.storage
+                            .from(
+                                Constants.EVENT_BUCKET
+                            )
+                            .publicUrl(
+                                fileName
+                            )
+                }
+            }
+
+            val event =
+                Events(
+                    title = title,
+                    description =
+                        description,
+                    location =
+                        location,
+                    date = date,
+                    posterUrl =
+                        imageUrl,
+                    createdBy =
+                        userId
+                )
 
             client
                 .from("events")
@@ -84,30 +156,7 @@ class EventRepository {
 
         } catch (e: Exception) {
 
-            Result.failure(e)
-        }
-    }
-
-    suspend fun updateEvent(
-        event: Event
-    ): Result<Unit> {
-
-        return try {
-
-            client
-                .from("events")
-                .update(event) {
-
-                    filter {
-
-                        eq("id", event.id)
-                    }
-                }
-
-            Result.success(Unit)
-
-        } catch (e: Exception) {
-
+            e.printStackTrace()
             Result.failure(e)
         }
     }
@@ -121,10 +170,11 @@ class EventRepository {
             client
                 .from("events")
                 .delete {
-
                     filter {
-
-                        eq("id", eventId)
+                        eq(
+                            "id",
+                            eventId
+                        )
                     }
                 }
 
@@ -132,6 +182,7 @@ class EventRepository {
 
         } catch (e: Exception) {
 
+            e.printStackTrace()
             Result.failure(e)
         }
     }

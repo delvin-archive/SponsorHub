@@ -1,5 +1,8 @@
 package com.example.sponsorhub.feature.event
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -7,55 +10,61 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
-import com.example.sponsorhub.core.network.SupabaseManager
-import com.example.sponsorhub.data.model.Event
-import com.example.sponsorhub.data.repository.EventRepository
-import io.github.jan.supabase.auth.auth
-import kotlinx.coroutines.launch
+import coil.compose.AsyncImage
 
 @Composable
 fun EventFormScreen(
     navController: NavHostController,
-    eventId: String? = null
+    viewModel: EventViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
 
-    val repository = remember {
-
-        EventRepository()
-    }
-
-    val client = SupabaseManager.client
-
-    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     var title by remember {
-
         mutableStateOf("")
     }
 
     var description by remember {
-
         mutableStateOf("")
     }
 
     var location by remember {
-
         mutableStateOf("")
     }
 
     var date by remember {
-
         mutableStateOf("")
     }
 
-    var contactNumber by remember {
+    var imageUri by remember {
+        mutableStateOf<Uri?>(null)
+    }
 
-        mutableStateOf("")
+    val isSuccess by
+    viewModel.isSuccess.collectAsState()
+
+    val message by
+    viewModel.message.collectAsState()
+
+    val launcher =
+        rememberLauncherForActivityResult(
+            contract =
+                ActivityResultContracts.GetContent()
+        ) {
+            imageUri = it
+        }
+
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            navController.popBackStack()
+            viewModel.resetState()
+        }
     }
 
     Column(
-
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(
@@ -65,13 +74,7 @@ fun EventFormScreen(
     ) {
 
         Text(
-
-            text =
-                if (eventId == null)
-                    "Buat Event"
-                else
-                    "Edit Event",
-
+            text = "Tambah Event",
             style =
                 MaterialTheme
                     .typography
@@ -79,182 +82,140 @@ fun EventFormScreen(
         )
 
         Spacer(
-            modifier = Modifier.height(24.dp)
-        )
-
-        OutlinedTextField(
-
-            value = title,
-
-            onValueChange = {
-
-                title = it
-            },
-
-            label = {
-
-                Text("Judul Event")
-            },
-
             modifier =
-                Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
-        OutlinedTextField(
-
-            value = description,
-
-            onValueChange = {
-
-                description = it
-            },
-
-            label = {
-
-                Text("Deskripsi")
-            },
-
-            minLines = 4,
-
-            modifier =
-                Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
-        OutlinedTextField(
-
-            value = location,
-
-            onValueChange = {
-
-                location = it
-            },
-
-            label = {
-
-                Text("Lokasi")
-            },
-
-            modifier =
-                Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
-        OutlinedTextField(
-
-            value = date,
-
-            onValueChange = {
-
-                date = it
-            },
-
-            label = {
-
-                Text("Tanggal")
-            },
-
-            modifier =
-                Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
-        OutlinedTextField(
-
-            value = contactNumber,
-
-            onValueChange = {
-
-                contactNumber = it
-            },
-
-            label = {
-
-                Text("Nomor Hubung Panitia")
-            },
-
-            modifier =
-                Modifier.fillMaxWidth()
-        )
-
-        Spacer(
-            modifier = Modifier.height(24.dp)
+                Modifier.height(24.dp)
         )
 
         Button(
-
             onClick = {
-
-                scope.launch {
-
-                    val userId =
-                        client.auth
-                            .currentUserOrNull()
-                            ?.id
-                            ?: return@launch
-
-                    val event = Event(
-
-                        id =
-                            eventId ?: "",
-
-                        title = title,
-
-                        description =
-                            description,
-
-                        location = location,
-
-                        date = date,
-
-                        createdBy = userId,
-
-                        contactNumber = contactNumber
-                    )
-
-                    val result =
-
-                        if (eventId == null) {
-
-                            repository
-                                .createEvent(
-                                    event
-                                )
-
-                        } else {
-
-                            repository
-                                .updateEvent(
-                                    event
-                                )
-                        }
-
-                    if (result.isSuccess) {
-
-                        navController
-                            .popBackStack()
-                    }
-                }
+                launcher.launch("image/*")
             },
-
             modifier =
                 Modifier.fillMaxWidth()
         ) {
+            Text("Pilih Poster Event")
+        }
 
-            Text("Simpan")
+        if (imageUri != null) {
+
+            Spacer(
+                modifier =
+                    Modifier.height(16.dp)
+            )
+
+            AsyncImage(
+                model = imageUri,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+            )
+        }
+
+        Spacer(
+            modifier =
+                Modifier.height(20.dp)
+        )
+
+        OutlinedTextField(
+            value = title,
+            onValueChange = {
+                title = it
+            },
+            label = {
+                Text("Judul Event")
+            },
+            modifier =
+                Modifier.fillMaxWidth()
+        )
+
+        Spacer(
+            modifier =
+                Modifier.height(16.dp)
+        )
+
+        OutlinedTextField(
+            value = description,
+            onValueChange = {
+                description = it
+            },
+            label = {
+                Text("Deskripsi Event")
+            },
+            minLines = 5,
+            modifier =
+                Modifier.fillMaxWidth()
+        )
+
+        Spacer(
+            modifier =
+                Modifier.height(16.dp)
+        )
+
+        OutlinedTextField(
+            value = location,
+            onValueChange = {
+                location = it
+            },
+            label = {
+                Text("Lokasi")
+            },
+            modifier =
+                Modifier.fillMaxWidth()
+        )
+
+        Spacer(
+            modifier =
+                Modifier.height(16.dp)
+        )
+
+        OutlinedTextField(
+            value = date,
+            onValueChange = {
+                date = it
+            },
+            label = {
+                Text("Tanggal")
+            },
+            modifier =
+                Modifier.fillMaxWidth()
+        )
+
+        Spacer(
+            modifier =
+                Modifier.height(24.dp)
+        )
+
+        Button(
+            onClick = {
+                viewModel.createEvent(
+                    context = context,
+                    title = title,
+                    description = description,
+                    location = location,
+                    date = date,
+                    imageUri = imageUri
+                )
+            },
+            modifier =
+                Modifier.fillMaxWidth()
+        ) {
+            Text("Simpan Event")
+        }
+
+        Spacer(
+            modifier =
+                Modifier.height(12.dp)
+        )
+
+        if (message.isNotBlank()) {
+            Text(
+                text = message,
+                color =
+                    MaterialTheme
+                        .colorScheme
+                        .error
+            )
         }
     }
 }
