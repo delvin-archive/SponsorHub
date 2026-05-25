@@ -13,7 +13,7 @@ import retrofit2.Retrofit
 object RetrofitClient {
 
     private val json = Json {
-        ignoreUnknownKeys = true   // abaikan field di JSON yang tidak ada di data class
+        ignoreUnknownKeys = true
         isLenient = true
     }
 
