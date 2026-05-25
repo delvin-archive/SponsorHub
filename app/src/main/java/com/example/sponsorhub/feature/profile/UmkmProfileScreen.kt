@@ -71,8 +71,6 @@ fun UmkmProfileScreen(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 32.dp)
     ) {
-
-        // ── PROFILE HEADER ────────────────────────────────────────────────────
         item {
             Column(
                 modifier = Modifier
@@ -109,7 +107,6 @@ fun UmkmProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // NAMA UMKM
                 Text(
                     text = umkm?.name ?: "—",
                     style = MaterialTheme.typography.headlineMedium,
@@ -126,7 +123,6 @@ fun UmkmProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // FAVORITE COUNT
                 Card(
                     colors = CardDefaults.cardColors(
                         containerColor = ErrorColor.copy(alpha = 0.1f)
@@ -154,7 +150,6 @@ fun UmkmProfileScreen(
             }
         }
 
-        // ── PRODUCTS SECTION ──────────────────────────────────────────────────
         item {
             HorizontalDivider()
             Spacer(modifier = Modifier.height(20.dp))

@@ -95,10 +95,6 @@ fun SponsorshipDetailScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 20.dp, vertical = 24.dp)
         ) {
-
-            // ── HEADER ────────────────────────────────────────────────────────
-
-            // STATUS BADGE
             val (statusLabel, statusColor) = when (request?.status) {
                 "diterima" -> "Diterima" to SuccessColor
                 "ditolak" -> "Ditolak" to ErrorColor
@@ -125,7 +121,6 @@ fun SponsorshipDetailScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // TITLE
             Text(
                 text = request?.title ?: "",
                 style = MaterialTheme.typography.headlineMedium,
@@ -137,8 +132,6 @@ fun SponsorshipDetailScreen(
             HorizontalDivider()
 
             Spacer(modifier = Modifier.height(20.dp))
-
-            // ── UMKM INFO ─────────────────────────────────────────────────────
 
             Text(
                 text = "Diajukan oleh",
@@ -181,8 +174,6 @@ fun SponsorshipDetailScreen(
                             )
                         }
                     }
-
-                    // TOMBOL LIHAT PROFIL
                     umkm?.id?.let { umkmId ->
                         TextButton(
                             onClick = {
@@ -198,8 +189,6 @@ fun SponsorshipDetailScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // ── DETAIL PENAWARAN ─────────────────────────────────────────────
 
             Text(
                 text = "Detail Penawaran",
@@ -224,8 +213,6 @@ fun SponsorshipDetailScreen(
             }
 
             Spacer(modifier = Modifier.height(32.dp))
-
-            // ── ACTION BUTTONS ────────────────────────────────────────────────
 
             if (request?.status == "menunggu") {
                 Text(
@@ -270,7 +257,6 @@ fun SponsorshipDetailScreen(
                 }
             }
 
-            // TOMBOL ADD TO FAVORITE (tampil jika sudah diterima)
             if (request?.status == "diterima") {
                 Spacer(modifier = Modifier.height(16.dp))
 

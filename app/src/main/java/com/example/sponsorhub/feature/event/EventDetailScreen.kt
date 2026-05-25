@@ -78,7 +78,6 @@ fun EventDetailScreen(
             .verticalScroll(rememberScrollState())
             .padding(20.dp)
     ) {
-        // EVENT POSTER
         if (!event?.posterUrl.isNullOrBlank()) {
             AsyncImage(
                 model = event?.posterUrl,
@@ -91,7 +90,6 @@ fun EventDetailScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // TITLE
         Text(
             text = event?.title ?: "",
             style = MaterialTheme.typography.headlineMedium
@@ -99,12 +97,10 @@ fun EventDetailScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // LOCATION
         AssistChip(onClick = {}, label = { Text(event?.location ?: "") })
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // DATE
         Text(
             text = event?.date ?: "",
             style = MaterialTheme.typography.bodyMedium
@@ -112,7 +108,6 @@ fun EventDetailScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // DESCRIPTION
         Text(
             text = event?.description ?: "",
             style = MaterialTheme.typography.bodyLarge
@@ -120,7 +115,6 @@ fun EventDetailScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // ROLE-BASED ACTION
         if (role == "umkm") {
             Button(
                 onClick = { navController.navigate("${Routes.SPONSORSHIP_FORM}/$eventId") },
@@ -152,7 +146,6 @@ fun EventDetailScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── SPONSORSHIP REQUESTS SECTION ──────────────────────────────
             Text(
                 text = "Pengajuan Sponsorship",
                 style = MaterialTheme.typography.titleLarge,
