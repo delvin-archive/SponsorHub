@@ -29,8 +29,11 @@ object Routes {
         "product_form"
 
     // SPONSORSHIP
-    const val SPONSORSHIP_FORM =
-        "sponsorship_form"
+    const val SPONSORSHIP_FORM = "sponsorship_form"
+
+    const val SPONSORSHIP_DETAIL = "sponsorship_detail"
+
+    const val UMKM_PROFILE = "umkm_profile"
 
     // REVIEW
     const val REVIEW =

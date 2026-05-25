@@ -21,7 +21,9 @@ import com.example.sponsorhub.feature.event.EventDetailScreen
 import com.example.sponsorhub.feature.event.EventFormScreen
 import com.example.sponsorhub.feature.event.EventListScreen
 import com.example.sponsorhub.feature.profile.ProfileScreen
+import com.example.sponsorhub.feature.profile.UmkmProfileScreen
 import com.example.sponsorhub.feature.review.ReviewScreen
+import com.example.sponsorhub.feature.sponsorship.SponsorshipDetailScreen
 import com.example.sponsorhub.feature.sponsorship.SponsorshipFormScreen
 import io.github.jan.supabase.auth.auth
 
@@ -226,33 +228,45 @@ fun SponsorHubNavGraph() {
                 )
             }
 
-            // SPONSORSHIP
+            // SPONSORSHIP FORM
             composable(
-                route =
-                    "${Routes.SPONSORSHIP_FORM}/{eventId}",
-
-                arguments =
-                    listOf(
-                        navArgument(
-                            "eventId"
-                        ) {
-                            type =
-                                NavType
-                                    .StringType
-                        }
-                    )
+                route = "${Routes.SPONSORSHIP_FORM}/{eventId}",
+                arguments = listOf(
+                    navArgument("eventId") { type = NavType.StringType }
+                )
             ) {
-
-                val eventId =
-                    it.arguments
-                        ?.getString(
-                            "eventId"
-                        ) ?: ""
-
+                val eventId = it.arguments?.getString("eventId") ?: ""
                 SponsorshipFormScreen(
-                    navController =
-                        navController,
+                    navController = navController,
                     eventId = eventId
+                )
+            }
+
+            // SPONSORSHIP DETAIL
+            composable(
+                route = "${Routes.SPONSORSHIP_DETAIL}/{sponsorshipId}",
+                arguments = listOf(
+                    navArgument("sponsorshipId") { type = NavType.StringType }
+                )
+            ) {
+                val sponsorshipId = it.arguments?.getString("sponsorshipId") ?: ""
+                SponsorshipDetailScreen(
+                    navController = navController,
+                    sponsorshipId = sponsorshipId
+                )
+            }
+
+            // UMKM PROFILE
+            composable(
+                route = "${Routes.UMKM_PROFILE}/{umkmId}",
+                arguments = listOf(
+                    navArgument("umkmId") { type = NavType.StringType }
+                )
+            ) {
+                val umkmId = it.arguments?.getString("umkmId") ?: ""
+                UmkmProfileScreen(
+                    navController = navController,
+                    umkmId = umkmId
                 )
             }
 
