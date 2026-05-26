@@ -4,9 +4,11 @@ import android.content.Context
 import android.net.Uri
 import com.example.sponsorhub.core.network.RetrofitClient
 import com.example.sponsorhub.core.network.SupabaseManager
+import com.example.sponsorhub.core.network.SupabaseManager.client
 import com.example.sponsorhub.core.utils.Constants
 import com.example.sponsorhub.data.model.Article
 import com.example.sponsorhub.data.remote.request.CreateArticleRequest
+import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
 
 class ArticleRepository {

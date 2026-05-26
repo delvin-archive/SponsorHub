@@ -7,6 +7,7 @@ import com.example.sponsorhub.core.network.SupabaseManager
 import com.example.sponsorhub.core.utils.Constants
 import com.example.sponsorhub.data.model.Product
 import com.example.sponsorhub.data.remote.request.CreateProductRequest
+import io.github.jan.supabase.auth.auth // <-- Tambahan import buat narik ID User
 import io.github.jan.supabase.storage.storage
 
 class ProductRepository {
@@ -39,6 +40,10 @@ class ProductRepository {
         imageUri: Uri?
     ): Result<Unit> {
         return try {
+            // 1. Ambil ID User yang lagi aktif
+            val userId = supabaseClient.auth.currentUserOrNull()?.id
+                ?: throw Exception("User tidak ditemukan. Silakan login kembali.")
+
             var imageUrl: String? = null
 
             if (imageUri != null) {
@@ -61,8 +66,10 @@ class ProductRepository {
                 }
             }
 
+            // 2. Masukin userId ke dalam Request Body
             val response = apiService.createProduct(
                 CreateProductRequest(
+                    userId = userId, // <-- Bedanya cuma di sini doang bos!
                     productName = name,
                     description = description,
                     productUrl = imageUrl

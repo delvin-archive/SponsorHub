@@ -23,9 +23,11 @@ data class CreateEventRequest(
 
 @Serializable
 data class CreateProductRequest(
-    @SerialName("product_name") val productName: String,
-    @SerialName("description") val description: String,
-    @SerialName("product_url") val productUrl: String? = null
+@SerialName("id") val id: String = "",
+@SerialName("product_name") val productName: String = "",
+@SerialName("description") val description: String = "",
+@SerialName("product_url") val productUrl: String? = null,
+@SerialName("user_id") val userId: String = ""
 )
 
 @Serializable
