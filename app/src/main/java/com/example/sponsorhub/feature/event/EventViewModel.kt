@@ -23,35 +23,30 @@ class EventViewModel : ViewModel() {
     private val sponsorshipRepository =
         SponsorshipRepository()
 
-    // EVENT LIST
     private val _events =
         MutableStateFlow<List<Events>>(emptyList())
 
     val events =
         _events.asStateFlow()
 
-    // SINGLE EVENT
     private val _selectedEvent =
         MutableStateFlow<Events?>(null)
 
     val selectedEvent =
         _selectedEvent.asStateFlow()
 
-    // USER ROLE
     private val _role =
         MutableStateFlow("")
 
     val role =
         _role.asStateFlow()
 
-    // SUCCESS STATE
     private val _isSuccess =
         MutableStateFlow(false)
 
     val isSuccess =
         _isSuccess.asStateFlow()
 
-    // ERROR / STATUS MESSAGE
     private val _message =
         MutableStateFlow("")
 

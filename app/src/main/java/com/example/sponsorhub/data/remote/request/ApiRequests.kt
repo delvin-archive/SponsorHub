@@ -3,8 +3,6 @@ package com.example.sponsorhub.data.remote.request
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// ─── Article ──────────────────────────────────────────────────────────────────
-
 @Serializable
 data class CreateArticleRequest(
     @SerialName("title") val title: String,
@@ -12,8 +10,6 @@ data class CreateArticleRequest(
     @SerialName("category") val category: String,
     @SerialName("image_url") val imageUrl: String? = null
 )
-
-// ─── Event ────────────────────────────────────────────────────────────────────
 
 @Serializable
 data class CreateEventRequest(
@@ -24,8 +20,6 @@ data class CreateEventRequest(
     @SerialName("poster_url") val posterUrl: String? = null,
     @SerialName("created_by") val createdBy: String
 )
-
-// ─── Product ──────────────────────────────────────────────────────────────────
 
 @Serializable
 data class CreateProductRequest(
@@ -52,8 +46,6 @@ data class CreateSponsorshipRequest(
     @SerialName("status") val status: String = "menunggu"
 )
 
-// ─── Update Status ────────────────────────────────────────────────────────────
-
 @Serializable
 data class UpdateStatusRequest(
     @SerialName("status") val status: String
@@ -69,4 +61,10 @@ data class CreateUserRequest(
 @Serializable
 data class UpdateProfileImageRequest(
     @SerialName("profile_image") val profileImage: String
+)
+
+@Serializable
+data class CreateFavoriteRequest(
+    @SerialName("panitia_id") val panitiaId: String,
+    @SerialName("umkm_id") val umkmId: String
 )
